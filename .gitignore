@@ -1,0 +1,39 @@
+# 设计/规划 meta 仓的 gitignore
+# 实际的 backend/ 和 frontend/ 是两个独立 git 仓，在这里忽略它们
+
+# 子项目仓库（独立 git 仓，会另初始化）
+/backend/
+/frontend/
+
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+hs_err_pid*
+
+# Node
+node_modules/
+dist/
+.vite/
+*.local
+
+# 环境变量
+.env
+.env.local
+*.env.local
+
+# 日志
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# 系统
+.DS_Store
+Thumbs.db
