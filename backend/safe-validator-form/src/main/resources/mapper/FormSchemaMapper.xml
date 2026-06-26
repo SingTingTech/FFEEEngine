@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.safevalidator.form.schema.mapper.FormSchemaMapper">
+
+    <resultMap id="schemaMap" type="com.safevalidator.form.schema.entity.FormSchema">
+        <id property="id" column="id"/>
+        <result property="formId" column="form_id"/>
+        <result property="version" column="version"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="targetTable" column="target_table"/>
+        <result property="isCurrent" column="is_current"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectCurrentByFormId" resultMap="schemaMap">
+        SELECT * FROM form_schema
+        WHERE form_id = #{formId} AND is_current = true AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectVersionsByFormId" resultMap="schemaMap">
+        SELECT * FROM form_schema
+        WHERE form_id = #{formId} AND deleted = 0
+        ORDER BY version DESC
+    </select>
+
+    <update id="unsetCurrentExcept">
+        UPDATE form_schema SET is_current = false
+        WHERE form_id = #{formId} AND deleted = 0
+        <if test="exceptSchemaId != null">
+            AND id != #{exceptSchemaId}
+        </if>
+    </update>
+</mapper>

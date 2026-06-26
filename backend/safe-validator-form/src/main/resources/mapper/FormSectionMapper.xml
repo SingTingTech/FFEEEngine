@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.safevalidator.form.schema.mapper.FormSectionMapper">
+
+    <resultMap id="sectionMap" type="com.safevalidator.form.schema.entity.FormSection">
+        <id property="id" column="id"/>
+        <result property="schemaId" column="schema_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectBySchemaId" resultMap="sectionMap">
+        SELECT * FROM form_section
+        WHERE schema_id = #{schemaId} AND deleted = 0
+        ORDER BY sort_order, id
+    </select>
+</mapper>

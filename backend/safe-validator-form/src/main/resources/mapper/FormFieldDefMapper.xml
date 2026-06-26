@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.safevalidator.form.schema.mapper.FormFieldDefMapper">
+
+    <resultMap id="fieldMap" type="com.safevalidator.form.schema.entity.FormFieldDef">
+        <id property="id" column="id"/>
+        <result property="schemaId" column="schema_id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="required" column="required"/>
+        <result property="defaultValue" column="default_value"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="config" column="config"/>
+        <result property="validation" column="validation"/>
+        <result property="targetColumn" column="target_column"/>
+        <result property="sectionId" column="section_id"/>
+        <result property="isLinkField" column="is_link_field"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectBySchemaId" resultMap="fieldMap">
+        SELECT * FROM form_field_def
+        WHERE schema_id = #{schemaId} AND deleted = 0
+        ORDER BY sort_order, id
+    </select>
+
+    <update id="clearIsLinkField">
+        UPDATE form_field_def SET is_link_field = false
+        WHERE schema_id = #{schemaId} AND code = #{fieldCode} AND deleted = 0
+    </update>
+</mapper>

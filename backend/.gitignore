@@ -1,0 +1,25 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+hs_err_pid*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Logs
+logs/
+*.log
+
+# Env
+.env
+.env.local
+
+# System
+.DS_Store
+Thumbs.db

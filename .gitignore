@@ -1,9 +1,8 @@
-# 设计/规划 meta 仓的 gitignore
-# 实际的 backend/ 和 frontend/ 是两个独立 git 仓，在这里忽略它们
+# safeValidator monorepo
+# 包含 docs/ (设计+计划), backend/ (Java Spring Boot), frontend/ (pnpm workspace)
 
-# 子项目仓库（独立 git 仓，会另初始化）
-/backend/
-/frontend/
+# Brainstorming artifacts
+.superpowers/
 
 # Java/Maven
 target/

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.safevalidator.form.schema.mapper.FormBusinessKeyMapper">
+
+    <resultMap id="keyMap" type="com.safevalidator.form.schema.entity.FormBusinessKey">
+        <id property="id" column="id"/>
+        <result property="formId" column="form_id"/>
+        <result property="fieldId" column="field_id"/>
+        <result property="keyOrder" column="key_order"/>
+        <result property="createTime" column="create_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByFormId" resultMap="keyMap">
+        SELECT * FROM form_business_key
+        WHERE form_id = #{formId} AND deleted = 0
+        ORDER BY key_order
+    </select>
+
+    <delete id="deleteByFormId">
+        UPDATE form_business_key SET deleted = 1
+        WHERE form_id = #{formId}
+    </delete>
+</mapper>

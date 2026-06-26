@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.safevalidator.form.schema.mapper.FormRelationshipMapper">
+
+    <resultMap id="relMap" type="com.safevalidator.form.schema.entity.FormRelationship">
+        <id property="id" column="id"/>
+        <result property="schemaId" column="schema_id"/>
+        <result property="parentFormId" column="parent_form_id"/>
+        <result property="childFormId" column="child_form_id"/>
+        <result property="relationType" column="relation_type"/>
+        <result property="parentLinkField" column="parent_link_field"/>
+        <result property="childLinkField" column="child_link_field"/>
+        <result property="onDelete" column="on_delete"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectBySchemaId" resultMap="relMap">
+        SELECT * FROM form_relationship
+        WHERE schema_id = #{schemaId} AND deleted = 0
+    </select>
+
+    <select id="selectByParentFormId" resultMap="relMap">
+        SELECT * FROM form_relationship
+        WHERE parent_form_id = #{parentFormId} AND deleted = 0
+    </select>
+
+    <select id="selectByChildFormId" resultMap="relMap">
+        SELECT * FROM form_relationship
+        WHERE child_form_id = #{childFormId} AND deleted = 0
+    </select>
+</mapper>
