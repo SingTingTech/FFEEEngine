@@ -1,5 +1,22 @@
+# safeValidator full stack with optional deps via profiles
+#
+# Usage:
+#   # Default — backend + frontend only, expects external Postgres/Redis
+#   docker compose up -d
+#   #   Defaults DB_HOST/REDIS_HOST to host.docker.internal (configurable via .env)
+#
+#   # Full — postgres + redis + backend + frontend (self-contained)
+#   docker compose --profile with-deps up -d
+#
+#   # Backend debug (JDWP on 5005)
+#   BACKEND_TARGET=debug BACKEND_TAG=debug docker compose up -d
+#   BACKEND_TARGET=debug BACKEND_TAG=debug docker compose --profile with-deps up -d
+
 services:
+
+  # ---------- Optional: bundled Postgres (only started with --profile with-deps) ----------
   postgres:
+    profiles: ["with-deps"]
     image: postgres:16-alpine
     container_name: sv-postgres
     environment:
@@ -16,7 +33,9 @@ services:
       timeout: 3s
       retries: 5
 
+  # ---------- Optional: bundled Redis (only started with --profile with-deps) ----------
   redis:
+    profiles: ["with-deps"]
     image: redis:7-alpine
     container_name: sv-redis
     command: redis-server --appendonly yes
@@ -30,6 +49,7 @@ services:
       timeout: 3s
       retries: 5
 
+  # ---------- Backend (always started unless explicitly excluded) ----------
   backend:
     image: safe-validator-backend:${BACKEND_TAG:-prod}
     build:
@@ -40,17 +60,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
       redis:
         condition: service_healthy
+        required: false
+    extra_hosts:
+      # Linux Docker: route host.docker.internal to the docker bridge gateway
+      # (Windows/macOS Docker Desktop already provides this automatically)
+      - "host.docker.internal:host-gateway"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-safe_validator}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_HOST: ${REDIS_HOST:-host.docker.internal}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
     ports:
       - "8080:8080"
@@ -58,6 +84,7 @@ services:
     volumes:
       - ./backend/logs:/app/logs
 
+  # ---------- Frontend (always started unless explicitly excluded) ----------
   frontend:
     image: safe-validator-frontend:latest
     build:
