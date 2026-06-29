@@ -2,7 +2,7 @@ import { Button, Tag } from 'antd';
 import { useState } from 'react';
 import { useDesignerStore } from '@/services/designer/designerStore';
 import type { FormFieldDefVO } from '@/types/designer';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SubformConfigDrawer } from './SubformConfigDrawer';
 
@@ -25,10 +25,14 @@ export function SubformContainer({ field, isSelected, childFields = [] }: Props)
     onDelete?: 'CASCADE' | 'SET_NULL' | 'RESTRICT';
   };
 
-  const { setNodeRef: dropRef } = useDroppable({
-    id: `canvas-field-${field.id}`,
-  });
-  const { attributes, listeners, setNodeRef: dragRef, transform } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: `canvas-field-${field.id}`,
     data: { source: 'canvas', fieldId: field.id },
   });
@@ -36,9 +40,11 @@ export function SubformContainer({ field, isSelected, childFields = [] }: Props)
   return (
     <>
       <div
-        ref={(el) => { dragRef(el); dropRef(el); }}
+        ref={setNodeRef}
         style={{
-          transform: CSS.Translate.toString(transform),
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.3 : 1,
           marginBottom: 8,
           border: isSelected ? '2px solid #1677ff' : '2px dashed #1677ff',
           background: '#e6f7ff',
@@ -46,6 +52,8 @@ export function SubformContainer({ field, isSelected, childFields = [] }: Props)
           padding: 8,
         }}
         onClick={() => selectField(field.id)}
+        {...attributes}
+        {...listeners}
       >
         <header style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span {...attributes} {...listeners} style={{ cursor: 'grab' }}>⋮⋮</span>
