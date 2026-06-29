@@ -215,7 +215,7 @@ describe('moveField', () => {
       ],
       sections: [sampleSection({ id: 's1' })], relationships: [],
     });
-    useDesignerStore.getState().moveField('1', null, 1);
+    useDesignerStore.getState().moveField('1', null, 0);
     const fields = useDesignerStore.getState().draftFields;
     expect(fields[0].id).toBe('1');
     expect(fields[0].sectionId).toBeNull();
