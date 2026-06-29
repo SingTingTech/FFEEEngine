@@ -56,7 +56,7 @@ export function SubformContainer({ field, isSelected, childFields = [] }: Props)
         {...listeners}
       >
         <header style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span {...attributes} {...listeners} style={{ cursor: 'grab' }}>⋮⋮</span>
+          <span style={{ cursor: 'grab' }}>⋮⋮</span>
           <span>📦</span>
           <b>{field.name || field.code}</b>
           <Tag color="blue">子表单</Tag>
