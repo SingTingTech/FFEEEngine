@@ -43,6 +43,7 @@ export interface DesignerState {
   removeField: (fieldId: string) => void;
   reorderFields: (orderedIds: string[]) => void;
   setFieldSection: (fieldId: string, sectionId: string | null) => void;
+  moveField: (fieldId: string, targetSectionId: string | null, targetIndex: number) => void;
 
   // Section actions
   addSection: (name: string) => SectionVO;
@@ -168,6 +169,19 @@ export const useDesignerStore = create<DesignerState>((set) => ({
       return { draftFields: fields, isDirty: true, selectedFieldId: newField.id };
     });
     return newField;
+  },
+
+  moveField: (fieldId, targetSectionId, targetIndex) => {
+    set((state) => {
+      const idx = state.draftFields.findIndex((f) => f.id === fieldId);
+      if (idx === -1) return state;
+      const fields = [...state.draftFields];
+      const [moved] = fields.splice(idx, 1);
+      const updated = { ...moved, sectionId: targetSectionId };
+      const clampedIndex = Math.max(0, Math.min(targetIndex, fields.length));
+      fields.splice(clampedIndex, 0, updated);
+      return { draftFields: fields, isDirty: true };
+    });
   },
 
   updateField: (fieldId, patch) => set((state) => ({

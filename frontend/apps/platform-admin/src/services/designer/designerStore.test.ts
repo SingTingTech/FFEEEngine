@@ -174,3 +174,101 @@ describe('addFieldAt', () => {
     expect(state.selectedFieldId).toBe(created.id);
   });
 });
+
+describe('moveField', () => {
+  it('同组内重排', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [sampleField({ id: '1' }), sampleField({ id: '2' }), sampleField({ id: '3' })],
+      sections: [], relationships: [],
+    });
+    useDesignerStore.getState().moveField('1', null, 2);
+    expect(useDesignerStore.getState().draftFields.map((f) => f.id)).toEqual(['2', '3', '1']);
+    expect(useDesignerStore.getState().draftFields[2].sectionId).toBeNull();
+  });
+
+  it('跨组移动 - 根 → 分组', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [
+        sampleField({ id: '1' }),
+        sampleField({ id: '2', sectionId: 's1' }),
+      ],
+      sections: [sampleSection({ id: 's1' })], relationships: [],
+    });
+    useDesignerStore.getState().moveField('1', 's1', 2);
+    const fields = useDesignerStore.getState().draftFields;
+    expect(fields).toHaveLength(2);
+    expect(fields[1].id).toBe('1');
+    expect(fields[1].sectionId).toBe('s1');
+  });
+
+  it('跨组移动 - 分组 → 根', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [
+        sampleField({ id: '1', sectionId: 's1' }),
+        sampleField({ id: '2' }),
+      ],
+      sections: [sampleSection({ id: 's1' })], relationships: [],
+    });
+    useDesignerStore.getState().moveField('1', null, 1);
+    const fields = useDesignerStore.getState().draftFields;
+    expect(fields[0].id).toBe('1');
+    expect(fields[0].sectionId).toBeNull();
+  });
+
+  it('分组 A → 分组 B', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [
+        sampleField({ id: '1', sectionId: 's1' }),
+        sampleField({ id: '2', sectionId: 's2' }),
+      ],
+      sections: [sampleSection({ id: 's1' }), sampleSection({ id: 's2' })],
+      relationships: [],
+    });
+    useDesignerStore.getState().moveField('1', 's2', 2);
+    const fields = useDesignerStore.getState().draftFields;
+    expect(fields).toHaveLength(2);
+    expect(fields[1].id).toBe('1');
+    expect(fields[1].sectionId).toBe('s2');
+  });
+
+  it('移动到末尾（targetIndex 越界）→ 插入到末尾', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [sampleField({ id: '1' }), sampleField({ id: '2' })],
+      sections: [], relationships: [],
+    });
+    useDesignerStore.getState().moveField('1', null, 99);
+    expect(useDesignerStore.getState().draftFields.map((f) => f.id)).toEqual(['2', '1']);
+  });
+
+  it('不存在的 fieldId → no-op', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [sampleField({ id: '1' })],
+      sections: [], relationships: [],
+    });
+    useDesignerStore.getState().moveField('ghost', null, 1);
+    expect(useDesignerStore.getState().draftFields).toHaveLength(1);
+  });
+
+  it('moveField 标 isDirty', () => {
+    useDesignerStore.getState().loadSchema({
+      formId: '1', schemaId: '100', formName: 'f', targetTable: null,
+      version: 1, isCurrent: true,
+      fields: [sampleField({ id: '1' }), sampleField({ id: '2' })],
+      sections: [], relationships: [],
+    });
+    useDesignerStore.getState().moveField('1', null, 2);
+    expect(useDesignerStore.getState().isDirty).toBe(true);
+  });
+});
