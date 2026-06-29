@@ -7,8 +7,8 @@ import { useDroppable } from '@dnd-kit/core';
 
 interface Props {
   section: SectionVO;
-  fields: FormFieldDefVO[];   // fields that belong to this section
-  selectedFieldId: number | null;
+  fields: FormFieldDefVO[];
+  selectedFieldId: string | null;
 }
 
 export function CanvasSection({ section, fields, selectedFieldId }: Props) {
@@ -17,6 +17,7 @@ export function CanvasSection({ section, fields, selectedFieldId }: Props) {
 
   const { setNodeRef: dropRef, isOver } = useDroppable({
     id: `canvas-section-${section.id}`,
+    data: { source: 'canvas-section', sectionId: section.id },
   });
 
   return (
@@ -24,11 +25,11 @@ export function CanvasSection({ section, fields, selectedFieldId }: Props) {
       ref={dropRef}
       style={{
         marginBottom: 8,
-        border: '2px dashed #faad14',
-        background: '#fffbe6',
+        border: `2px dashed ${isOver ? '#1677ff' : '#faad14'}`,
+        background: isOver ? '#e6f4ff' : '#fffbe6',
         borderRadius: 4,
         padding: 6,
-        opacity: isOver ? 0.7 : 1,
+        transition: 'all 0.15s',
       }}
     >
       <header
