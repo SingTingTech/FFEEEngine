@@ -24,9 +24,12 @@ interface CanvasProps {
   /** True when the cursor is over the canvas-empty drop zone at the
    *  bottom of the canvas. Ghost renders at the end in that case. */
   draggingOverEmpty: boolean;
+  /** True when the drag will be cancelled (cursor outside any valid
+   *  drop target). Hide the ghost — nothing will be inserted. */
+  draggingInvalid: boolean;
 }
 
-export function Canvas({ insertionTarget, draggingType, draggingOverEmpty }: CanvasProps) {
+export function Canvas({ insertionTarget, draggingType, draggingOverEmpty, draggingInvalid }: CanvasProps) {
   const fields = useDesignerStore((s) => s.draftFields);
   const sections = useDesignerStore((s) => s.draftSections);
   const selectedFieldId = useDesignerStore((s) => s.selectedFieldId);
@@ -99,9 +102,9 @@ export function Canvas({ insertionTarget, draggingType, draggingOverEmpty }: Can
             const showLineAfter =
               insertionTarget?.fieldId === f.id && insertionTarget.position === 'after';
             const showGhostBefore =
-              !!draggingType && showLineBefore;
+              !!draggingType && !draggingInvalid && showLineBefore;
             const showGhostAfter =
-              !!draggingType && showLineAfter;
+              !!draggingType && !draggingInvalid && showLineAfter;
             const fieldEl = f.type === 'subform' ? (
               <SubformContainer
                 field={f}
@@ -141,7 +144,7 @@ export function Canvas({ insertionTarget, draggingType, draggingOverEmpty }: Can
           })}
         </SortableContext>
         {/* Ghost at the very end when dropping on canvas-empty zone. */}
-        {draggingType && draggingOverEmpty && (
+        {draggingType && !draggingInvalid && draggingOverEmpty && (
           <div style={{ marginTop: 4 }}>
             <FieldPreview
               emoji={LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}

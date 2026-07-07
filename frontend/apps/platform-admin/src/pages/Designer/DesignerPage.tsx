@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { App, Layout, Spin } from 'antd';
@@ -47,6 +47,16 @@ export default function DesignerPage() {
   // True when the cursor is over the empty zone at the bottom of the
   // canvas (not over any field). Used to show the ghost card at the end.
   const [draggingOverEmpty, setDraggingOverEmpty] = useState(false);
+  // True when the cursor is outside any valid drop target — e.g. dragged
+  // off the canvas, over the app header/sidebar. handleDragEnd returns
+  // early in this case, so we surface it visually (DragOverlay turns
+  // red + ghost hides) to make the cancellation obvious.
+  const [draggingInvalid, setDraggingInvalid] = useState(false);
+  // Ref to the canvas Content sider so we can compute the cursor-vs-
+  // canvas boundary ourselves. closestCorners can pick a droppable
+  // even when the cursor is outside the canvas (its corner is closest
+  // to a field), so we can't rely on `over` alone.
+  const canvasRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!formId) {
@@ -102,18 +112,42 @@ export default function DesignerPage() {
   // continuous before/after feedback.
   const updateInsertionTarget = (event: DragOverEvent) => {
     const { over, activatorEvent, delta } = event;
+    const cursor = cursorFromEvent(activatorEvent, delta);
+    const inCanvas = cursor && canvasRef.current
+      ? pointInRect(cursor.x, cursor.y, canvasRef.current.getBoundingClientRect())
+      : false;
+    if (!inCanvas) {
+      // Cursor is outside the canvas sider (e.g. dragged onto the app
+      // sidebar or header). dnd-kit's closestCorners may still resolve a
+      // droppable here via corner proximity, so we trust the rect test
+      // instead and mark the drag as invalid.
+      setInsertionTarget(null);
+      setDraggingOverEmpty(false);
+      setDraggingInvalid(true);
+      return;
+    }
     if (!over) {
       setInsertionTarget(null);
       setDraggingOverEmpty(false);
+      setDraggingInvalid(false);
       return;
     }
     const overId = String(over.id);
     if (overId === 'canvas-empty') {
       setInsertionTarget(null);
       setDraggingOverEmpty(true);
+      setDraggingInvalid(false);
       return;
     }
     setDraggingOverEmpty(false);
+    // Library drags onto the delete zone are an explicit cancel — show
+    // invalid feedback even though over is set.
+    if (overId === 'canvas-delete' && isLibraryDrag(String(event.active.id))) {
+      setInsertionTarget(null);
+      setDraggingInvalid(true);
+      return;
+    }
+    setDraggingInvalid(false);
     const overField = isCanvasDrag(overId);
     if (overField === null) {
       setInsertionTarget(null);
@@ -124,23 +158,31 @@ export default function DesignerPage() {
       setInsertionTarget(null);
       return;
     }
-    const activator = activatorEvent as PointerEvent | undefined;
-    const cursorY = activator && typeof activator.clientY === 'number'
-      ? activator.clientY + delta.y
-      : overRect.top;
     const overMidY = overRect.top + overRect.height / 2;
-    const position: 'before' | 'after' = cursorY <= overMidY ? 'before' : 'after';
+    const position: 'before' | 'after' = (cursor?.y ?? overRect.top) <= overMidY ? 'before' : 'after';
     setInsertionTarget({ fieldId: overField, position });
   };
 
   const handleDragOver = updateInsertionTarget;
   const handleDragMove = updateInsertionTarget;
 
+  // Compute cursor position from the original pointer event + accumulated
+  // drag delta. Used to test cursor-vs-canvas-rect independently of
+  // dnd-kit's collision detection (which uses corners, not the cursor).
+  const cursorFromEvent = (activatorEvent: Event | undefined, delta: { x: number; y: number }) => {
+    const a = activatorEvent as PointerEvent | undefined;
+    if (!a || typeof a.clientX !== 'number') return null;
+    return { x: a.clientX + delta.x, y: a.clientY + delta.y };
+  };
+  const pointInRect = (x: number, y: number, r: DOMRect) =>
+    x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+
   const handleDragCancel = () => {
     setDraggingType(null);
     setDraggingFieldId(null);
     setInsertionTarget(null);
     setDraggingOverEmpty(false);
+    setDraggingInvalid(false);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -148,8 +190,16 @@ export default function DesignerPage() {
     setDraggingFieldId(null);
     setInsertionTarget(null);
     setDraggingOverEmpty(false);
-    const { active, over } = event;
-    if (!over) return;
+    setDraggingInvalid(false);
+    const { active, over, activatorEvent, delta } = event;
+    // Final guard: even if dnd-kit resolved a droppable, cancel when the
+    // cursor ended outside the canvas. This catches the closestCorners
+    // corner-proximity false positives.
+    const cursor = cursorFromEvent(activatorEvent, delta);
+    const inCanvas = cursor && canvasRef.current
+      ? pointInRect(cursor.x, cursor.y, canvasRef.current.getBoundingClientRect())
+      : false;
+    if (!inCanvas || !over) return;
 
     const overId = String(over.id);
     const activeId = String(active.id);
@@ -248,11 +298,12 @@ export default function DesignerPage() {
           <Sider width={260} theme="light" style={{ overflow: 'auto' }}>
             <ComponentLibrary />
           </Sider>
-          <Content style={{ background: '#f5f5f5', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <Content ref={canvasRef} style={{ background: '#f5f5f5', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
             <Canvas
               insertionTarget={insertionTarget}
               draggingType={draggingType}
               draggingOverEmpty={draggingOverEmpty}
+              draggingInvalid={draggingInvalid}
             />
           </Content>
           <Sider width={340} theme="light" style={{ overflow: 'auto' }}>
@@ -274,8 +325,9 @@ export default function DesignerPage() {
         {draggingType && (
           <FieldPreview
             emoji={LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}
-            label={LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}
+            label={draggingInvalid ? '取消' : (LIBRARY_TYPE_META[draggingType]?.label ?? draggingType)}
             type={draggingType}
+            invalid={draggingInvalid}
           />
         )}
         {draggingFieldId &&
@@ -288,6 +340,7 @@ export default function DesignerPage() {
                 label={field.name || field.code}
                 type={field.type}
                 required={field.required}
+                invalid={draggingInvalid}
               />
             );
           })()}
