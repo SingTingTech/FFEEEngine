@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Card, Form, Input, Modal, Popconfirm, Radio, Space, Table, Tag } from 'antd';
+import { App, Button, Card, Form, Input, Modal, Popconfirm, Radio, Space, Table } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { designerApi } from '@/services/designer/designerApi';
 import type { FormVO, CreateFormRequest } from '@/types/designer';
@@ -48,18 +48,6 @@ export default function FormListPage() {
         dataSource={forms ?? []}
         columns={[
           { title: '名称', dataIndex: 'name' },
-          {
-            title: '最新版本',
-            render: (_, r) => <Tag>v{r.version}</Tag>,
-          },
-          {
-            title: '状态',
-            render: (_, r) => (
-              <Tag color={r.isCurrent ? 'green' : 'orange'}>
-                {r.isCurrent ? '已发布' : '草稿'}
-              </Tag>
-            ),
-          },
           { title: '目标表', dataIndex: 'targetTable', render: (v) => v ?? <em>无（form_data）</em> },
           {
             title: '更新时间',

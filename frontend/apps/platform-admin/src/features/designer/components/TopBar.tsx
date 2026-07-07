@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { App, Button, Layout, Space, Tag, Typography } from 'antd';
-import { ArrowLeftOutlined, EyeOutlined, RocketOutlined, SaveOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, EyeOutlined, SaveOutlined } from '@ant-design/icons';
 import { useDesignerStore, buildUpdateRequest } from '@/services/designer/designerStore';
 import { designerApi } from '@/services/designer/designerApi';
 import { useState } from 'react';
@@ -13,8 +13,6 @@ export function TopBar() {
   const { message } = App.useApp();
   const formName = useDesignerStore((s) => s.formName);
   const targetTable = useDesignerStore((s) => s.targetTable);
-  const version = useDesignerStore((s) => s.version);
-  const isCurrent = useDesignerStore((s) => s.isCurrent);
   const isDirty = useDesignerStore((s) => s.isDirty);
   const formId = useDesignerStore((s) => s.formId);
   const loadSchema = useDesignerStore((s) => s.loadSchema);
@@ -22,16 +20,16 @@ export function TopBar() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const saveDraft = async () => {
+  // No separate draft / publish flow — saving is the publish action. The
+  // backend endpoint still bumps the schema version internally, but that's
+  // an implementation detail, not a user-facing concept.
+  const save = async () => {
     if (!formId) return;
     setSaving(true);
     try {
-      // Drafts are saved as a new schema version with status=草稿
-      // For MVP: we re-use the publish endpoint to "save" (creates a new version each time)
-      // In future, separate save-draft endpoint
       const req = buildUpdateRequest(useDesignerStore.getState());
       await designerApi.publishNewVersion(formId, req);
-      message.success('草稿已保存');
+      message.success('已保存');
       // Reload the schema to sync state
       const fresh = await designerApi.getForm(formId);
       loadSchema({
@@ -61,7 +59,6 @@ export function TopBar() {
       <Typography.Title level={4} style={{ margin: 0 }}>
         📋 {formName}
       </Typography.Title>
-      <Tag color={isCurrent ? 'green' : 'orange'}>v{version} {isCurrent ? '已发布' : '草稿'}</Tag>
       {targetTable && <Tag>映射到表: {targetTable}</Tag>}
 
       <div style={{ flex: 1 }} />
@@ -70,11 +67,14 @@ export function TopBar() {
         <Button icon={<EyeOutlined />} onClick={() => setPreviewOpen(true)}>
           预览
         </Button>
-        <Button icon={<SaveOutlined />} loading={saving} onClick={saveDraft} disabled={!isDirty}>
-          保存草稿
-        </Button>
-        <Button type="primary" icon={<RocketOutlined />} onClick={saveDraft}>
-          发布新版本
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          loading={saving}
+          onClick={save}
+          disabled={!isDirty}
+        >
+          保存
         </Button>
       </Space>
 
