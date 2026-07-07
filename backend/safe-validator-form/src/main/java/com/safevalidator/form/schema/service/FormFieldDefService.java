@@ -62,7 +62,7 @@ public class FormFieldDefService {
         def.setConfig(toJson(req.config()));
         def.setValidation(toJson(req.validation()));
         def.setTargetColumn(req.targetColumn());
-        def.setSectionId(req.sectionId());
+        def.setSectionId(parseSectionId(req.sectionId()));
         def.setIsLinkField(false);
         fieldMapper.insert(def);
         return def.getId();
@@ -110,6 +110,26 @@ public class FormFieldDefService {
             return objectMapper.writeValueAsString(map);
         } catch (JsonProcessingException e) {
             return null;
+        }
+    }
+
+    private Long parseSectionId(String sectionId) {
+        if (sectionId == null || sectionId.isBlank()) return null;
+        // Client-side temp ids (e.g. "tmp-0") are only valid within a single
+        // publishNewVersion request — the backend builds a clientId→serverId
+        // map there. The single addField endpoint has no such map, so it must
+        // reject tmp-* ids explicitly rather than silently dropping the
+        // sectionId (which would orphan the field from its section).
+        if (sectionId.startsWith("tmp-")) {
+            throw new BizException(ErrorCode.BAD_REQUEST,
+                    "sectionId 不能是临时 ID（" + sectionId + "）。请先发布（publishNewVersion）让临时段获得真实 ID，"
+                            + "或通过 publishNewVersion 一次性提交 section + field。");
+        }
+        try {
+            return Long.parseLong(sectionId);
+        } catch (NumberFormatException e) {
+            throw new BizException(ErrorCode.BAD_REQUEST,
+                    "sectionId 格式无效: " + sectionId);
         }
     }
 }

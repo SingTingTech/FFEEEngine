@@ -12,4 +12,6 @@ public interface FormSchemaMapper extends BaseMapper<FormSchema> {
     FormSchema selectCurrentByFormId(@Param("formId") Long formId);
     List<FormSchema> selectVersionsByFormId(@Param("formId") Long formId);
     int unsetCurrentExcept(@Param("formId") Long formId, @Param("exceptSchemaId") Long exceptSchemaId);
+    int softDeleteByFormId(@Param("formId") Long formId);
+    List<FormSchema> selectAllCurrent();
 }

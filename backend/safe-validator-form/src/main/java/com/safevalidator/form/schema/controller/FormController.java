@@ -2,11 +2,13 @@ package com.safevalidator.form.schema.controller;
 
 import com.safevalidator.common.api.Result;
 import com.safevalidator.form.schema.dto.CreateFormRequest;
+import com.safevalidator.form.schema.dto.FormSchemaVO;
 import com.safevalidator.form.schema.dto.SchemaDetailVO;
 import com.safevalidator.form.schema.dto.SchemaVersionVO;
 import com.safevalidator.form.schema.dto.UpdateSchemaRequest;
 import com.safevalidator.form.schema.service.FormSchemaService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +32,11 @@ public class FormController {
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateFormRequest req) {
         return Result.ok(schemaService.createForm(req));
+    }
+
+    @GetMapping
+    public Result<List<FormSchemaVO>> list() {
+        return Result.ok(schemaService.listAllCurrent());
     }
 
     @GetMapping("/{formId}")
@@ -56,5 +63,11 @@ public class FormController {
     public Result<Long> publishNewVersion(@PathVariable Long formId,
                                           @RequestBody UpdateSchemaRequest req) {
         return Result.ok(schemaService.publishNewVersion(formId, req));
+    }
+
+    @DeleteMapping("/{formId}")
+    public Result<Void> delete(@PathVariable Long formId) {
+        schemaService.deleteForm(formId);
+        return Result.ok();
     }
 }

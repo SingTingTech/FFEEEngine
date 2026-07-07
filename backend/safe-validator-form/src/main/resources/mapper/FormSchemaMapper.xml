@@ -30,11 +30,22 @@
         ORDER BY version DESC
     </select>
 
+    <select id="selectAllCurrent" resultMap="schemaMap">
+        SELECT * FROM form_schema
+        WHERE is_current = true AND deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
     <update id="unsetCurrentExcept">
         UPDATE form_schema SET is_current = false
         WHERE form_id = #{formId} AND deleted = 0
         <if test="exceptSchemaId != null">
             AND id != #{exceptSchemaId}
         </if>
+    </update>
+
+    <update id="softDeleteByFormId">
+        UPDATE form_schema SET deleted = 1
+        WHERE form_id = #{formId} AND deleted = 0
     </update>
 </mapper>

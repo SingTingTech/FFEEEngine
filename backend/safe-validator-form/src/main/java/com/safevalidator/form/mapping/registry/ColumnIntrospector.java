@@ -30,9 +30,12 @@ public class ColumnIntrospector {
             try (ResultSet rs = md.getTables(null, "public", null, new String[]{"TABLE"})) {
                 while (rs.next()) {
                     String name = rs.getString("TABLE_NAME");
-                    if (name != null && !name.startsWith("_")) {
-                        tables.add(name);
-                    }
+                    // Filter out: system tables, temp tables, underscore-prefixed
+                    if (name == null || name.startsWith("_")) continue;
+                    if (name.startsWith("flyway_")) continue;
+                    if (name.startsWith("sys_")) continue;
+                    if (name.startsWith("form_")) continue;
+                    tables.add(name);
                 }
             }
         } catch (Exception e) {

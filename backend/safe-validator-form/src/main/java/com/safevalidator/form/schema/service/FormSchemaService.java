@@ -52,10 +52,16 @@ public class FormSchemaService {
         schema.setName(req.name());
         schema.setDescription(req.description());
         schema.setStatus(1);
-        schema.setTargetTable(null);
+        // Empty string is normalized to null so targetTable is uniformly nullable.
+        schema.setTargetTable(normalizeTargetTable(req.targetTable()));
         schema.setIsCurrent(true);
         schemaMapper.insert(schema);
         return schema.getFormId();
+    }
+
+    private String normalizeTargetTable(String targetTable) {
+        if (targetTable == null || targetTable.isBlank()) return null;
+        return targetTable;
     }
 
     public FormSchema getCurrentSchema(Long formId) {
@@ -86,6 +92,26 @@ public class FormSchemaService {
     }
 
     @Transactional
+    public void deleteForm(Long formId) {
+        // Soft-delete all schema versions for this formId
+        schemaMapper.softDeleteByFormId(formId);
+    }
+
+    public List<FormSchemaVO> listAllCurrent() {
+        return schemaMapper.selectAllCurrent().stream()
+                .map(this::toFormSchemaVO)
+                .toList();
+    }
+
+    private FormSchemaVO toFormSchemaVO(FormSchema s) {
+        return new FormSchemaVO(
+                s.getId(), s.getFormId(), s.getVersion(),
+                s.getName(), s.getDescription(), s.getStatus(),
+                s.getTargetTable(), s.getIsCurrent(),
+                s.getCreateTime(), s.getUpdateTime());
+    }
+
+    @Transactional
     public Long publishNewVersion(Long formId, UpdateSchemaRequest req) {
         FormSchema current = getCurrentSchema(formId);
         if (current.getTargetTable() != null) {
@@ -106,11 +132,37 @@ public class FormSchemaService {
         newSchema.setIsCurrent(true);
         schemaMapper.insert(newSchema);
 
-        // 3. apply new fields (delete old, create new)
-        // Note: for MVP we replace all fields (full version snapshot)
+        // 3. delete old fields, relationships, sections for the current schema
         for (FormFieldDef old : fieldMapper.selectBySchemaId(current.getId())) {
             fieldMapper.deleteById(old.getId());
         }
+        for (FormRelationship old : relMapper.selectBySchemaId(current.getId())) {
+            relMapper.deleteById(old.getId());
+        }
+        for (FormSection old : sectionMapper.selectBySchemaId(current.getId())) {
+            sectionMapper.deleteById(old.getId());
+        }
+
+        // 4. insert sections first; build a map from client-side sectionId (e.g. "tmp-0"
+        //    or a server-issued Long stringified) to the newly-generated server id.
+        //    The frontend buildUpdateRequest sends the section's current `id` so fields
+        //    can reference it and we can remap here.
+        java.util.Map<String, Long> sectionIdMap = new java.util.HashMap<>();
+        if (req.sections() != null) {
+            for (CreateSectionRequest sec : req.sections()) {
+                FormSection newSec = new FormSection();
+                newSec.setSchemaId(newSchema.getId());
+                newSec.setName(sec.name());
+                newSec.setDescription(sec.description());
+                newSec.setSortOrder(sec.sortOrder() != null ? sec.sortOrder() : 0);
+                sectionMapper.insert(newSec);
+                if (sec.id() != null && !sec.id().isBlank()) {
+                    sectionIdMap.put(sec.id(), newSec.getId());
+                }
+            }
+        }
+
+        // 5. insert fields with remapped sectionId
         if (req.fields() != null) {
             int order = 0;
             for (CreateFieldRequest f : req.fields()) {
@@ -125,16 +177,20 @@ public class FormSchemaService {
                 def.setConfig(toJson(f.config()));
                 def.setValidation(toJson(f.validation()));
                 def.setTargetColumn(f.targetColumn());
-                def.setSectionId(f.sectionId());
+                // Remap: if field references a section by its client-side id, substitute
+                // the newly-inserted server id; else null.
+                if (f.sectionId() != null) {
+                    Long remapped = sectionIdMap.get(f.sectionId());
+                    def.setSectionId(remapped);
+                } else {
+                    def.setSectionId(null);
+                }
                 def.setIsLinkField(false);
                 fieldMapper.insert(def);
             }
         }
 
-        // 4. apply new relationships
-        for (FormRelationship old : relMapper.selectBySchemaId(current.getId())) {
-            relMapper.deleteById(old.getId());
-        }
+        // 6. insert relationships
         if (req.relationships() != null) {
             for (CreateRelationshipRequest r : req.relationships()) {
                 FormRelationship rel = new FormRelationship();
@@ -149,33 +205,6 @@ public class FormSchemaService {
 
                 // mark child field as link field
                 fieldMapper.clearIsLinkField(newSchema.getId(), r.childLinkField());
-            }
-        }
-
-        // 4.5. copy sections from current schema to new schema
-        for (FormSection old : sectionMapper.selectBySchemaId(current.getId())) {
-            FormSection newSec = new FormSection();
-            newSec.setSchemaId(newSchema.getId());
-            newSec.setName(old.getName());
-            newSec.setDescription(old.getDescription());
-            newSec.setSortOrder(old.getSortOrder());
-            sectionMapper.insert(newSec);
-        }
-
-        // 4.6. delete old sections (after copying)
-        for (FormSection old : sectionMapper.selectBySchemaId(current.getId())) {
-            sectionMapper.deleteById(old.getId());
-        }
-
-        // 5.5. apply new sections (if any in request)
-        if (req.sections() != null) {
-            for (CreateSectionRequest sec : req.sections()) {
-                FormSection newSec = new FormSection();
-                newSec.setSchemaId(newSchema.getId());
-                newSec.setName(sec.name());
-                newSec.setDescription(sec.description());
-                newSec.setSortOrder(sec.sortOrder() != null ? sec.sortOrder() : 0);
-                sectionMapper.insert(newSec);
             }
         }
 

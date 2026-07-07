@@ -46,7 +46,7 @@ class E2ESmokeTest {
     @Test
     void createUnmappedFormAndSubmit() {
         // 1. Create form
-        Long formId = schemaService.createForm(new CreateFormRequest("订单", null, null));
+        Long formId = schemaService.createForm(new CreateFormRequest("订单", null, null, null));
 
         // 2. Publish version with fields
         schemaService.publishNewVersion(formId, new UpdateSchemaRequest(

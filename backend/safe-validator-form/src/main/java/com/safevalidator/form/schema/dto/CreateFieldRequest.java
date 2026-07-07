@@ -15,5 +15,7 @@ public record CreateFieldRequest(
         Map<String, Object> config,
         Map<String, Object> validation,
         @Size(max = 128) String targetColumn,
-        Long sectionId
+        // Client-side id (e.g. "tmp-0" for a new section, or a server-issued Long string
+        // when editing an existing form). The backend remaps to the new section id.
+        @Size(max = 64) String sectionId
 ) {}
