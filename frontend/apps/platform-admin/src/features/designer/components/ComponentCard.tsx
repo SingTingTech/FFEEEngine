@@ -1,7 +1,6 @@
 import { Button, Card } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 
 interface Props {
   type: string;
@@ -11,7 +10,7 @@ interface Props {
 }
 
 export function ComponentCard({ type, label, emoji, onAdd }: Props) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `library-${type}`,
     data: { source: 'library', type },
   });
@@ -24,7 +23,13 @@ export function ComponentCard({ type, label, emoji, onAdd }: Props) {
       style={{
         marginBottom: 6,
         cursor: 'grab',
-        transform: CSS.Translate.toString(transform),
+        // Keep the card anchored in the library while dragging — the
+        // DragOverlay renders the cursor-following preview instead. A
+        // faint outline + dim opacity signals "this one's being dragged"
+        // without the row collapsing or the card flying out of the sider.
+        opacity: isDragging ? 0.35 : 1,
+        outline: isDragging ? '2px dashed #1677ff' : 'none',
+        outlineOffset: -2,
       }}
       styles={{ body: { padding: 8, display: 'flex', alignItems: 'center', gap: 8 } }}
       data-component-type={type}
