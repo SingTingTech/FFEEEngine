@@ -51,7 +51,7 @@ export default function LoginPage() {
         <Typography.Title level={3} style={{ textAlign: 'center', marginBottom: 32 }}>
           safeValidator
         </Typography.Title>
-        <Form<LoginForm> layout="vertical" onFinish={onFinish} initialValues={{ username: 'admin' }}>
+        <Form<LoginForm> layout="vertical" onFinish={onFinish}>
           <Form.Item
             label="用户名"
             name="username"
@@ -71,9 +71,6 @@ export default function LoginPage() {
               登录
             </Button>
           </Form.Item>
-          <Typography.Text type="secondary" style={{ display: 'block', textAlign: 'center' }}>
-            默认账号: admin / admin123
-          </Typography.Text>
         </Form>
       </Card>
     </div>

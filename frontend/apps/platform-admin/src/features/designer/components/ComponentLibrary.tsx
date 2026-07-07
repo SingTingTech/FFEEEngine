@@ -44,13 +44,14 @@ const FIELD_CATEGORIES: { title: string; emoji: string; items: ComponentDef[] }[
 
 export function ComponentLibrary() {
   const addField = useDesignerStore((s) => s.addField);
+  const addSection = useDesignerStore((s) => s.addSection);
 
   const handleAdd = (type: string) => {
-    if (type === 'subform') {
-      // Subform has special handling — open config drawer instead of direct add
-      // For now, just add a placeholder; the actual config drawer is Phase 5
+    if (type === 'section') {
+      // Section is a container, not a field — generate a default name; user can rename in canvas
+      addSection(`分组 ${useDesignerStore.getState().draftSections.length + 1}`);
+    } else if (type === 'subform') {
       addField('subform');
-      // Open subform config drawer — handled by parent component
     } else {
       addField(type);
     }
@@ -96,11 +97,11 @@ export function ComponentLibrary() {
           children: (
             <div style={{ padding: 12 }}>
               <Empty
-                description="子表单选择器（Phase 5 实现）"
+                description="暂无可用的子表单"
                 imageStyle={{ height: 60 }}
               />
               <p style={{ fontSize: 12, color: '#888' }}>
-                列出所有可作为子表单的 form。从这里拖入画布。
+                请先创建其他表单，再将其作为子表单添加到当前表单。
               </p>
             </div>
           ),
