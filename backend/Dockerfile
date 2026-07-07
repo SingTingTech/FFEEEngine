@@ -5,14 +5,19 @@ ARG RUNTIME_BASE_JDK=azul/zulu-openjdk-alpine:17
 
 FROM ${MAVEN_BASE} AS builder
 
-ARG MAVEN_VERSION=3.9.9
-RUN apk add --no-cache curl bash \
-    && curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+ARG MAVEN_VERSION=3.9.16
+# Use Aliyun alpine mirror to avoid slow dl-cdn.alpinelinux.org in CN
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories \
+    && apk add --no-cache curl bash \
+    && curl -fsSL https://mirrors.ustc.edu.cn/apache/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz \
        | tar xz -C /opt \
     && ln -s /opt/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/local/bin/mvn
 
 ENV MAVEN_HOME=/opt/apache-maven-${MAVEN_VERSION}
 WORKDIR /build
+
+# Use Aliyun Maven mirror for fast dependency resolution in CN
+COPY settings.xml /root/.m2/settings.xml
 
 COPY pom.xml .
 COPY safe-validator-common/pom.xml safe-validator-common/
@@ -27,7 +32,8 @@ RUN mvn clean package -DskipTests -B \
 
 FROM ${RUNTIME_BASE_JRE} AS prod
 WORKDIR /app
-RUN addgroup -S app && adduser -S app -G app
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories \
+    && addgroup -S app && adduser -S app -G app
 COPY --from=builder /build/safe-validator-start/target/safe-validator-start.jar /app/app.jar
 USER app
 EXPOSE 8080
@@ -35,7 +41,8 @@ ENTRYPOINT ["java", "-XX:+UseG1GC", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/a
 
 FROM ${RUNTIME_BASE_JDK} AS debug
 WORKDIR /app
-RUN apk add --no-cache curl bash \
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories \
+    && apk add --no-cache curl bash \
     && addgroup -S app && adduser -S app -G app
 COPY --from=builder /build/safe-validator-start/target/safe-validator-start.jar /app/app.jar
 

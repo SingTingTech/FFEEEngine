@@ -57,6 +57,7 @@ services:
       dockerfile: Dockerfile
       target: ${BACKEND_TARGET:-prod}
     container_name: sv-backend
+    user: "${UID:-1000}:${GID:-1000}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -72,12 +73,13 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       DB_HOST: ${DB_HOST:-host.docker.internal}
       DB_PORT: ${DB_PORT:-5432}
-      DB_NAME: ${DB_NAME:-safe_validator}
+      DB_NAME: ${DB_NAME:-safeValidator}
       DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-FitechDev_2026}
       REDIS_HOST: ${REDIS_HOST:-host.docker.internal}
       REDIS_PORT: ${REDIS_PORT:-6379}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-123456}
+      JWT_SECRET: ${JWT_SECRET:-#*$dhujiow(&u$}
     ports:
       - "8080:8080"
       - "5005:5005"

@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
 FROM node:20-alpine AS builder
+# Use Aliyun alpine mirror to avoid slow dl-cdn.alpinelinux.org in CN
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* .npmrc ./
