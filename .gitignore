@@ -36,3 +36,6 @@ logs/
 # 系统
 .DS_Store
 Thumbs.db
+
+# Playwright MCP debug cache (local only, never commit)
+.playwright-mcp/
