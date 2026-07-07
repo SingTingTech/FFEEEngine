@@ -25,8 +25,12 @@ export function LinkFieldsEditor({
       : `${field.code} (${field.type})`,
   });
 
+  // Show every child field. The 🔗 badge marks fields already flagged as
+  // link fields on the child schema, but we don't gate selection on it —
+  // there's no UI to set isLinkField on the child schema from here, so
+  // filtering on it would lock the user out as soon as the first pair
+  // is added.
   const childOptions = childFields
-    .filter((f) => f.isLinkField || value.length === 0)
     .map((f) => ({ value: f.code, label: `${f.code} (${f.type})${f.isLinkField ? ' 🔗' : ''}` }));
 
   const updatePair = (i: number, patch: Partial<LinkFieldPair>) => {
