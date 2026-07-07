@@ -16,7 +16,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api/, ''),
+        // Keep /api prefix — backend controllers are mapped to /api/*
       },
     },
   },

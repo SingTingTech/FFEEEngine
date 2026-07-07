@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/permissions")
+@RequestMapping("/api/admin/permissions")
 public class PermissionController {
 
     private final PermissionService permissionService;

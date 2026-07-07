@@ -41,12 +41,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
-                    "/auth/login",
-                    "/auth/refresh",
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/actuator/health",
+                    "/api/auth/login",
+                    "/api/auth/refresh",
+                    "/api/v3/api-docs/**",
+                    "/api/swagger-ui/**",
+                    "/api/swagger-ui.html",
+                    "/api/actuator/health",
                     "/error"
                 ).permitAll()
                 .anyRequest().authenticated()
@@ -60,9 +60,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOriginPatterns(List.of(
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "http://127.0.0.1:*"
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            // Private network ranges (dev only — tighten for prod)
+            "http://192.168.*:*",
+            "http://172.*:*",
+            "http://10.*:*"
         ));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
