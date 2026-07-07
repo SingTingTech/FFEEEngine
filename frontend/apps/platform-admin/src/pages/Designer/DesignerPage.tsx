@@ -198,51 +198,23 @@ export default function DesignerPage() {
         }}
       >
         {draggingType && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#fff',
-              padding: '10px 16px',
-              border: '2px solid #1677ff',
-              borderRadius: 8,
-              boxShadow: '0 8px 24px rgba(22,119,255,0.25)',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#1677ff',
-              minWidth: 140,
-            }}
-          >
-            <span style={{ fontSize: 20 }}>{LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}</span>
-            <span>添加 {LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}</span>
-          </div>
+          <FieldPreview
+            emoji={LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}
+            label={LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}
+            type={draggingType}
+          />
         )}
         {draggingFieldId &&
           (() => {
             const field = fields.find((f) => f.id === draggingFieldId);
             if (!field) return null;
             return (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  background: '#fff',
-                  padding: '10px 16px',
-                  border: '2px solid #1677ff',
-                  borderRadius: 8,
-                  boxShadow: '0 8px 24px rgba(22,119,255,0.25)',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: '#1677ff',
-                  minWidth: 140,
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{LIBRARY_TYPE_META[field.type]?.emoji ?? '🔧'}</span>
-                <span>{field.name || field.code}</span>
-                <small style={{ color: '#888', fontWeight: 400 }}>({field.type})</small>
-              </div>
+              <FieldPreview
+                emoji={LIBRARY_TYPE_META[field.type]?.emoji ?? '🔧'}
+                label={field.name || field.code}
+                type={field.type}
+                required={field.required}
+              />
             );
           })()}
       </DragOverlay>
@@ -274,3 +246,66 @@ const LIBRARY_TYPE_META: Record<string, { emoji: string; label: string }> = {
   file:        { emoji: '📁', label: '文件' },
   reference:   { emoji: '🔗', label: '引用' },
 };
+
+/**
+ * DragOverlay content. Mirrors the look of a real CanvasField card (white
+ * bg, subtle border, type icon + label + type tag) so the user sees what
+ * they're about to drop instead of a generic "添加 文本" pill.
+ */
+function FieldPreview({
+  emoji,
+  label,
+  type,
+  required = false,
+}: {
+  emoji: string;
+  label: string;
+  type: string;
+  required?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        background: '#fff',
+        padding: '6px 12px',
+        border: '1px solid #d9d9d9',
+        borderRadius: 4,
+        boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
+        fontSize: 13,
+        minWidth: 220,
+        cursor: 'grabbing',
+      }}
+    >
+      <span style={{ fontSize: 16 }}>{emoji}</span>
+      <span style={{ flex: 1, color: '#333' }}>{label}</span>
+      <span
+        style={{
+          fontSize: 11,
+          padding: '1px 6px',
+          background: '#f0f0f0',
+          color: '#666',
+          borderRadius: 2,
+        }}
+      >
+        {type}
+      </span>
+      {required && (
+        <span
+          style={{
+            fontSize: 11,
+            padding: '1px 6px',
+            background: '#fff1f0',
+            color: '#cf1322',
+            borderRadius: 2,
+            border: '1px solid #ffa39e',
+          }}
+        >
+          必填
+        </span>
+      )}
+    </div>
+  );
+}
