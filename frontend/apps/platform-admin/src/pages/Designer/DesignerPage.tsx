@@ -200,15 +200,22 @@ export default function DesignerPage() {
         {draggingType && (
           <div
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
               background: '#fff',
-              padding: '6px 12px',
+              padding: '10px 16px',
               border: '2px solid #1677ff',
-              borderRadius: 4,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              opacity: 0.9,
+              borderRadius: 8,
+              boxShadow: '0 8px 24px rgba(22,119,255,0.25)',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#1677ff',
+              minWidth: 140,
             }}
           >
-            + {draggingType}
+            <span style={{ fontSize: 20 }}>{LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}</span>
+            <span>添加 {LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}</span>
           </div>
         )}
         {draggingFieldId &&
@@ -218,15 +225,23 @@ export default function DesignerPage() {
             return (
               <div
                 style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                   background: '#fff',
-                  padding: '6px 12px',
+                  padding: '10px 16px',
                   border: '2px solid #1677ff',
-                  borderRadius: 4,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  opacity: 0.9,
+                  borderRadius: 8,
+                  boxShadow: '0 8px 24px rgba(22,119,255,0.25)',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: '#1677ff',
+                  minWidth: 140,
                 }}
               >
-                {field.name || field.code} <small style={{ color: '#888' }}>({field.type})</small>
+                <span style={{ fontSize: 20 }}>{LIBRARY_TYPE_META[field.type]?.emoji ?? '🔧'}</span>
+                <span>{field.name || field.code}</span>
+                <small style={{ color: '#888', fontWeight: 400 }}>({field.type})</small>
               </div>
             );
           })()}
@@ -242,3 +257,20 @@ function lastIndexOfSection(fields: { sectionId: string | null }[], sectionId: s
   }
   return -1;
 }
+
+// 库类型 → 预览用的 emoji + 中文标签。跟 ComponentLibrary.tsx 的
+// FIELD_CATEGORIES 保持一致；如果 ComponentLibrary 加了新类型这里也要加。
+const LIBRARY_TYPE_META: Record<string, { emoji: string; label: string }> = {
+  text:        { emoji: '📝', label: '文本' },
+  longtext:    { emoji: '📄', label: '长文本' },
+  number:      { emoji: '🔢', label: '数字' },
+  date:        { emoji: '📅', label: '日期' },
+  datetime:    { emoji: '🕐', label: '日期时间' },
+  select:      { emoji: '☑️', label: '单选' },
+  multiselect: { emoji: '🔲', label: '多选' },
+  section:     { emoji: '▢',  label: '分组' },
+  subform:     { emoji: '📦', label: '子表单' },
+  boolean:     { emoji: '✓',  label: '布尔' },
+  file:        { emoji: '📁', label: '文件' },
+  reference:   { emoji: '🔗', label: '引用' },
+};
