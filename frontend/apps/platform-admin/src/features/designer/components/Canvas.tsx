@@ -43,19 +43,29 @@ export function Canvas() {
   return (
     <div
       style={{
+        // flex:1 (set on parent Content) + minHeight:0 lets this fill the
+        // Content sider without relying on height:100% — antd Content is a
+        // flex item with computed (not explicit) height, so percentage
+        // heights on its children don't always resolve.
+        flex: 1,
+        minHeight: 0,
         padding: 16,
-        maxWidth: 900,
-        margin: '0 auto',
-        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
       }}
     >
-      {/* Scrollable middle: fields + empty drop zone. flex:1 + minHeight:0 lets
-          it shrink below its content height so the inner overflow:auto kicks
-          in instead of pushing the DeleteDropZone off-screen. */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      {/* Scrollable middle: fields + empty drop zone. maxWidth centered. */}
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
+          maxWidth: 900,
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
         <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
           {renderList.map((item) => {
             if (item.kind === 'section') {
@@ -84,9 +94,11 @@ export function Canvas() {
         </SortableContext>
         <EmptyCanvasDropZone empty={isEmpty} />
       </div>
-      {/* Delete zone is always at the bottom edge of the canvas, regardless
-          of how many fields are above. */}
-      <DeleteDropZone />
+      {/* Delete zone sits below the scrollable pane, always at the bottom
+          edge of the canvas, regardless of how many fields are above. */}
+      <div style={{ maxWidth: 900, margin: '0 auto', width: '100%' }}>
+        <DeleteDropZone />
+      </div>
     </div>
   );
 }

@@ -178,7 +178,7 @@ export default function DesignerPage() {
           <Sider width={260} theme="light" style={{ overflow: 'auto' }}>
             <ComponentLibrary />
           </Sider>
-          <Content style={{ background: '#f5f5f5', overflow: 'auto' }}>
+          <Content style={{ background: '#f5f5f5', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
             <Canvas />
           </Content>
           <Sider width={340} theme="light" style={{ overflow: 'auto' }}>
