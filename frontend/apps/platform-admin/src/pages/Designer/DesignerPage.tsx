@@ -29,6 +29,7 @@ export default function DesignerPage() {
   const fields = useDesignerStore((s) => s.draftFields);
   const addFieldAt = useDesignerStore((s) => s.addFieldAt);
   const moveField = useDesignerStore((s) => s.moveField);
+  const removeField = useDesignerStore((s) => s.removeField);
 
   const [draggingType, setDraggingType] = useState<string | null>(null);
   const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
@@ -148,6 +149,11 @@ export default function DesignerPage() {
       moveField(fromId, null, fields.length);
       return;
     }
+    // 画布 → 删除区
+    if (overId === 'canvas-delete') {
+      removeField(fromId);
+      return;
+    }
   };
 
   if (isLoading || !data) {
@@ -166,9 +172,9 @@ export default function DesignerPage() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <Layout style={{ minHeight: '100vh' }}>
+      <Layout style={{ height: '100vh', overflow: 'hidden' }}>
         <TopBar />
-        <Layout style={{ height: 'calc(100vh - 64px)' }}>
+        <Layout style={{ flex: 1, minHeight: 0 }}>
           <Sider width={260} theme="light" style={{ overflow: 'auto' }}>
             <ComponentLibrary />
           </Sider>
@@ -180,7 +186,17 @@ export default function DesignerPage() {
           </Sider>
         </Layout>
       </Layout>
-      <DragOverlay>
+      <DragOverlay
+        // Library→canvas drops default to animating the overlay back to the
+        // source (the library card), which reads as "the field snapped back".
+        // Replace with a fade-out so the overlay just disappears; the actual
+        // field appears in the canvas where it was added.
+        dropAnimation={{
+          keyframes: () => [{ opacity: 1 }, { opacity: 0 }],
+          duration: 150,
+          easing: 'ease-out',
+        }}
+      >
         {draggingType && (
           <div
             style={{

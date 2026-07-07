@@ -5,6 +5,7 @@ import { CanvasField } from './CanvasField';
 import { CanvasSection } from './CanvasSection';
 import { SubformContainer } from './SubformContainer';
 import { EmptyCanvasDropZone } from './EmptyCanvasDropZone';
+import { DeleteDropZone } from './DeleteDropZone';
 import { buildRenderList } from '@/features/designer/renderList';
 import { useQuery } from '@tanstack/react-query';
 import { designerApi } from '@/services/designer/designerApi';
@@ -68,6 +69,7 @@ export function Canvas() {
         })}
       </SortableContext>
       <EmptyCanvasDropZone empty={isEmpty} />
+      <DeleteDropZone />
     </div>
   );
 }
