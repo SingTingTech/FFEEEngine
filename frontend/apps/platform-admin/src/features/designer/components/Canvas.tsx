@@ -7,6 +7,8 @@ import { SubformContainer } from './SubformContainer';
 import { EmptyCanvasDropZone } from './EmptyCanvasDropZone';
 import { DeleteDropZone } from './DeleteDropZone';
 import { InsertionLine } from './InsertionLine';
+import { FieldPreview } from './FieldPreview';
+import { LIBRARY_TYPE_META } from '@/features/designer/libraryMeta';
 import { buildRenderList } from '@/features/designer/renderList';
 import { useQuery } from '@tanstack/react-query';
 import { designerApi } from '@/services/designer/designerApi';
@@ -16,9 +18,15 @@ interface CanvasProps {
   /** Which field the cursor is currently over and whether to insert
    *  before/after it. null when not dragging or not over a field. */
   insertionTarget: { fieldId: string; position: 'before' | 'after' } | null;
+  /** Type being dragged from the library (e.g. 'text'), null otherwise.
+   *  Used to render a ghost preview at the insertion point. */
+  draggingType: string | null;
+  /** True when the cursor is over the canvas-empty drop zone at the
+   *  bottom of the canvas. Ghost renders at the end in that case. */
+  draggingOverEmpty: boolean;
 }
 
-export function Canvas({ insertionTarget }: CanvasProps) {
+export function Canvas({ insertionTarget, draggingType, draggingOverEmpty }: CanvasProps) {
   const fields = useDesignerStore((s) => s.draftFields);
   const sections = useDesignerStore((s) => s.draftSections);
   const selectedFieldId = useDesignerStore((s) => s.selectedFieldId);
@@ -90,6 +98,10 @@ export function Canvas({ insertionTarget }: CanvasProps) {
               insertionTarget?.fieldId === f.id && insertionTarget.position === 'before';
             const showLineAfter =
               insertionTarget?.fieldId === f.id && insertionTarget.position === 'after';
+            const showGhostBefore =
+              !!draggingType && showLineBefore;
+            const showGhostAfter =
+              !!draggingType && showLineAfter;
             const fieldEl = f.type === 'subform' ? (
               <SubformContainer
                 field={f}
@@ -102,12 +114,43 @@ export function Canvas({ insertionTarget }: CanvasProps) {
             return (
               <Fragment key={f.id}>
                 {showLineBefore && <InsertionLine active />}
+                {showGhostBefore && draggingType && (
+                  <div style={{ marginBottom: 4 }}>
+                    <FieldPreview
+                      emoji={LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}
+                      label={LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}
+                      type={draggingType}
+                      opacity={0.55}
+                    />
+                  </div>
+                )}
                 {fieldEl}
                 {showLineAfter && <InsertionLine active />}
+                {showGhostAfter && draggingType && (
+                  <div style={{ marginBottom: 4 }}>
+                    <FieldPreview
+                      emoji={LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}
+                      label={LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}
+                      type={draggingType}
+                      opacity={0.55}
+                    />
+                  </div>
+                )}
               </Fragment>
             );
           })}
         </SortableContext>
+        {/* Ghost at the very end when dropping on canvas-empty zone. */}
+        {draggingType && draggingOverEmpty && (
+          <div style={{ marginTop: 4 }}>
+            <FieldPreview
+              emoji={LIBRARY_TYPE_META[draggingType]?.emoji ?? '➕'}
+              label={LIBRARY_TYPE_META[draggingType]?.label ?? draggingType}
+              type={draggingType}
+              opacity={0.55}
+            />
+          </div>
+        )}
         <EmptyCanvasDropZone empty={isEmpty} />
       </div>
       {/* Delete zone sits below the scrollable pane, always at the bottom

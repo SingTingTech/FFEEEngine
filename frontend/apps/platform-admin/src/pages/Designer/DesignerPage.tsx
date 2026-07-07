@@ -19,6 +19,8 @@ import { TopBar } from '@/features/designer/components/TopBar';
 import { ComponentLibrary } from '@/features/designer/components/ComponentLibrary';
 import { Canvas } from '@/features/designer/components/Canvas';
 import { PropertyPanel } from '@/features/designer/components/PropertyPanel';
+import { FieldPreview } from '@/features/designer/components/FieldPreview';
+import { LIBRARY_TYPE_META } from '@/features/designer/libraryMeta';
 
 const { Content, Sider } = Layout;
 
@@ -42,6 +44,9 @@ export default function DesignerPage() {
   const [insertionTarget, setInsertionTarget] = useState<
     { fieldId: string; position: 'before' | 'after' } | null
   >(null);
+  // True when the cursor is over the empty zone at the bottom of the
+  // canvas (not over any field). Used to show the ghost card at the end.
+  const [draggingOverEmpty, setDraggingOverEmpty] = useState(false);
 
   useEffect(() => {
     if (!formId) {
@@ -99,9 +104,16 @@ export default function DesignerPage() {
     const { over, activatorEvent, delta } = event;
     if (!over) {
       setInsertionTarget(null);
+      setDraggingOverEmpty(false);
       return;
     }
     const overId = String(over.id);
+    if (overId === 'canvas-empty') {
+      setInsertionTarget(null);
+      setDraggingOverEmpty(true);
+      return;
+    }
+    setDraggingOverEmpty(false);
     const overField = isCanvasDrag(overId);
     if (overField === null) {
       setInsertionTarget(null);
@@ -128,12 +140,14 @@ export default function DesignerPage() {
     setDraggingType(null);
     setDraggingFieldId(null);
     setInsertionTarget(null);
+    setDraggingOverEmpty(false);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     setDraggingType(null);
     setDraggingFieldId(null);
     setInsertionTarget(null);
+    setDraggingOverEmpty(false);
     const { active, over } = event;
     if (!over) return;
 
@@ -235,7 +249,11 @@ export default function DesignerPage() {
             <ComponentLibrary />
           </Sider>
           <Content style={{ background: '#f5f5f5', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <Canvas insertionTarget={insertionTarget} />
+            <Canvas
+              insertionTarget={insertionTarget}
+              draggingType={draggingType}
+              draggingOverEmpty={draggingOverEmpty}
+            />
           </Content>
           <Sider width={340} theme="light" style={{ overflow: 'auto' }}>
             <PropertyPanel />
@@ -286,82 +304,4 @@ function lastIndexOfSection(fields: { sectionId: string | null }[], sectionId: s
   return -1;
 }
 
-// 库类型 → 预览用的 emoji + 中文标签。跟 ComponentLibrary.tsx 的
-// FIELD_CATEGORIES 保持一致；如果 ComponentLibrary 加了新类型这里也要加。
-const LIBRARY_TYPE_META: Record<string, { emoji: string; label: string }> = {
-  text:        { emoji: '📝', label: '文本' },
-  longtext:    { emoji: '📄', label: '长文本' },
-  number:      { emoji: '🔢', label: '数字' },
-  date:        { emoji: '📅', label: '日期' },
-  datetime:    { emoji: '🕐', label: '日期时间' },
-  select:      { emoji: '☑️', label: '单选' },
-  multiselect: { emoji: '🔲', label: '多选' },
-  section:     { emoji: '▢',  label: '分组' },
-  subform:     { emoji: '📦', label: '子表单' },
-  boolean:     { emoji: '✓',  label: '布尔' },
-  file:        { emoji: '📁', label: '文件' },
-  reference:   { emoji: '🔗', label: '引用' },
-};
-
-/**
- * DragOverlay content. Mirrors the look of a real CanvasField card (white
- * bg, subtle border, type icon + label + type tag) so the user sees what
- * they're about to drop instead of a generic "添加 文本" pill.
- */
-function FieldPreview({
-  emoji,
-  label,
-  type,
-  required = false,
-}: {
-  emoji: string;
-  label: string;
-  type: string;
-  required?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        background: '#fff',
-        padding: '6px 12px',
-        border: '1px solid #d9d9d9',
-        borderRadius: 4,
-        boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
-        fontSize: 13,
-        minWidth: 220,
-        cursor: 'grabbing',
-      }}
-    >
-      <span style={{ fontSize: 16 }}>{emoji}</span>
-      <span style={{ flex: 1, color: '#333' }}>{label}</span>
-      <span
-        style={{
-          fontSize: 11,
-          padding: '1px 6px',
-          background: '#f0f0f0',
-          color: '#666',
-          borderRadius: 2,
-        }}
-      >
-        {type}
-      </span>
-      {required && (
-        <span
-          style={{
-            fontSize: 11,
-            padding: '1px 6px',
-            background: '#fff1f0',
-            color: '#cf1322',
-            borderRadius: 2,
-            border: '1px solid #ffa39e',
-          }}
-        >
-          必填
-        </span>
-      )}
-    </div>
-  );
-}
+// 库类型 → 预览用的 emoji + 中文标签已抽到 features/designer/libraryMeta.ts
