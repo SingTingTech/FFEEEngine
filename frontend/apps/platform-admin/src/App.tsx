@@ -35,7 +35,7 @@ function MainLayout() {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ height: '100vh', overflow: 'hidden' }}>
       <Header style={{ background: '#fff', padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography.Title level={4} style={{ margin: 0 }}>
           safeValidator Admin

@@ -172,7 +172,7 @@ export default function DesignerPage() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <Layout style={{ height: '100vh', overflow: 'hidden' }}>
+      <Layout style={{ height: '100%', overflow: 'hidden' }}>
         <TopBar />
         <Layout style={{ flex: 1, minHeight: 0 }}>
           <Sider width={260} theme="light" style={{ overflow: 'auto' }}>
