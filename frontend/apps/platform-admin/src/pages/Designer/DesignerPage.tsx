@@ -9,6 +9,8 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  type DragOverEvent,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import { designerApi } from '@/services/designer/designerApi';
 import { useDesignerStore } from '@/services/designer/designerStore';
@@ -33,6 +35,13 @@ export default function DesignerPage() {
 
   const [draggingType, setDraggingType] = useState<string | null>(null);
   const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
+  // Cursor-based insertion target for library→canvas and canvas→canvas
+  // drags. Tracks which field the cursor is over and whether it's in the
+  // top or bottom half (before/after). Canvas renders the InsertionLine
+  // here.
+  const [insertionTarget, setInsertionTarget] = useState<
+    { fieldId: string; position: 'before' | 'after' } | null
+  >(null);
 
   useEffect(() => {
     if (!formId) {
@@ -82,17 +91,49 @@ export default function DesignerPage() {
     if (canvasFieldId !== null) setDraggingFieldId(canvasFieldId);
   };
 
+  // Update insertion preview on every mouse move. onDragOver only fires when
+  // `over` changes (i.e. the cursor crosses a field boundary), so it can't
+  // capture cursor movement within a single field — onDragMove is needed for
+  // continuous before/after feedback.
+  const updateInsertionTarget = (event: DragOverEvent) => {
+    const { over, activatorEvent, delta } = event;
+    if (!over) {
+      setInsertionTarget(null);
+      return;
+    }
+    const overId = String(over.id);
+    const overField = isCanvasDrag(overId);
+    if (overField === null) {
+      setInsertionTarget(null);
+      return;
+    }
+    const overRect = over.rect;
+    if (!overRect) {
+      setInsertionTarget(null);
+      return;
+    }
+    const activator = activatorEvent as PointerEvent | undefined;
+    const cursorY = activator && typeof activator.clientY === 'number'
+      ? activator.clientY + delta.y
+      : overRect.top;
+    const overMidY = overRect.top + overRect.height / 2;
+    const position: 'before' | 'after' = cursorY <= overMidY ? 'before' : 'after';
+    setInsertionTarget({ fieldId: overField, position });
+  };
+
+  const handleDragOver = updateInsertionTarget;
+  const handleDragMove = updateInsertionTarget;
+
   const handleDragCancel = () => {
     setDraggingType(null);
     setDraggingFieldId(null);
+    setInsertionTarget(null);
   };
 
-  const handleDragEnd = (event: {
-    active: { id: string | number };
-    over: { id: string | number } | null;
-  }) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     setDraggingType(null);
     setDraggingFieldId(null);
+    setInsertionTarget(null);
     const { active, over } = event;
     if (!over) return;
 
@@ -108,7 +149,11 @@ export default function DesignerPage() {
         const overIdx = fields.findIndex((f) => f.id === overField);
         if (overIdx === -1) return;
         const overFieldObj = fields[overIdx];
-        addFieldAt(lib.type, overFieldObj.sectionId, overIdx + 1);
+        // Use cursor-based position from insertionTarget when available;
+        // fall back to "after" if not (e.g. touch / quick click+release).
+        const pos = insertionTarget?.fieldId === overField ? insertionTarget.position : 'after';
+        const insertIdx = pos === 'before' ? overIdx : overIdx + 1;
+        addFieldAt(lib.type, overFieldObj.sectionId, insertIdx);
         return;
       }
       // 2. over 是分组
@@ -136,7 +181,16 @@ export default function DesignerPage() {
       const toIdx = fields.findIndex((f) => f.id === toId);
       if (fromIdx === -1 || toIdx === -1) return;
       const target = fields[toIdx];
-      moveField(fromId, target.sectionId, toIdx + (fromIdx < toIdx ? 1 : 0));
+      // Cursor-based: before/after from insertionTarget, default to existing
+      // "swap with neighbor" semantics.
+      const pos = insertionTarget?.fieldId === toId ? insertionTarget.position : 'after';
+      let insertIdx: number;
+      if (pos === 'before') {
+        insertIdx = toIdx;
+      } else {
+        insertIdx = toIdx + (fromIdx < toIdx ? 1 : 0);
+      }
+      moveField(fromId, target.sectionId, insertIdx);
       return;
     }
     if (overId.startsWith('canvas-section-')) {
@@ -169,6 +223,8 @@ export default function DesignerPage() {
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -179,7 +235,7 @@ export default function DesignerPage() {
             <ComponentLibrary />
           </Sider>
           <Content style={{ background: '#f5f5f5', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <Canvas />
+            <Canvas insertionTarget={insertionTarget} />
           </Content>
           <Sider width={340} theme="light" style={{ overflow: 'auto' }}>
             <PropertyPanel />

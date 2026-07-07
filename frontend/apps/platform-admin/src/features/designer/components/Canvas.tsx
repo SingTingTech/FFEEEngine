@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDesignerStore } from '@/services/designer/designerStore';
 import { CanvasField } from './CanvasField';
@@ -6,12 +6,19 @@ import { CanvasSection } from './CanvasSection';
 import { SubformContainer } from './SubformContainer';
 import { EmptyCanvasDropZone } from './EmptyCanvasDropZone';
 import { DeleteDropZone } from './DeleteDropZone';
+import { InsertionLine } from './InsertionLine';
 import { buildRenderList } from '@/features/designer/renderList';
 import { useQuery } from '@tanstack/react-query';
 import { designerApi } from '@/services/designer/designerApi';
 import type { SchemaDetailVO } from '@/types/designer';
 
-export function Canvas() {
+interface CanvasProps {
+  /** Which field the cursor is currently over and whether to insert
+   *  before/after it. null when not dragging or not over a field. */
+  insertionTarget: { fieldId: string; position: 'before' | 'after' } | null;
+}
+
+export function Canvas({ insertionTarget }: CanvasProps) {
   const fields = useDesignerStore((s) => s.draftFields);
   const sections = useDesignerStore((s) => s.draftSections);
   const selectedFieldId = useDesignerStore((s) => s.selectedFieldId);
@@ -79,17 +86,26 @@ export function Canvas() {
               );
             }
             const f = item.field;
-            if (f.type === 'subform') {
-              return (
-                <SubformContainer
-                  key={f.id}
-                  field={f}
-                  isSelected={f.id === selectedFieldId}
-                  childFields={getChildFields((f.config?.subformRefId as string) ?? '')}
-                />
-              );
-            }
-            return <CanvasField key={f.id} field={f} isSelected={f.id === selectedFieldId} />;
+            const showLineBefore =
+              insertionTarget?.fieldId === f.id && insertionTarget.position === 'before';
+            const showLineAfter =
+              insertionTarget?.fieldId === f.id && insertionTarget.position === 'after';
+            const fieldEl = f.type === 'subform' ? (
+              <SubformContainer
+                field={f}
+                isSelected={f.id === selectedFieldId}
+                childFields={getChildFields((f.config?.subformRefId as string) ?? '')}
+              />
+            ) : (
+              <CanvasField field={f} isSelected={f.id === selectedFieldId} />
+            );
+            return (
+              <Fragment key={f.id}>
+                {showLineBefore && <InsertionLine active />}
+                {fieldEl}
+                {showLineAfter && <InsertionLine active />}
+              </Fragment>
+            );
           })}
         </SortableContext>
         <EmptyCanvasDropZone empty={isEmpty} />
