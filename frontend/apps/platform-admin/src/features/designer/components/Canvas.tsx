@@ -41,34 +41,51 @@ export function Canvas() {
   const isEmpty = fields.length === 0;
 
   return (
-    <div style={{ padding: 16, maxWidth: 900, margin: '0 auto', minHeight: '100%' }}>
-      <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
-        {renderList.map((item) => {
-          if (item.kind === 'section') {
-            return (
-              <CanvasSection
-                key={`section-${item.section.id}-${item.fields[0]?.id ?? 'empty'}`}
-                section={item.section}
-                fields={item.fields}
-                selectedFieldId={selectedFieldId}
-              />
-            );
-          }
-          const f = item.field;
-          if (f.type === 'subform') {
-            return (
-              <SubformContainer
-                key={f.id}
-                field={f}
-                isSelected={f.id === selectedFieldId}
-                childFields={getChildFields((f.config?.subformRefId as string) ?? '')}
-              />
-            );
-          }
-          return <CanvasField key={f.id} field={f} isSelected={f.id === selectedFieldId} />;
-        })}
-      </SortableContext>
-      <EmptyCanvasDropZone empty={isEmpty} />
+    <div
+      style={{
+        padding: 16,
+        maxWidth: 900,
+        margin: '0 auto',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Scrollable middle: fields + empty drop zone. flex:1 + minHeight:0 lets
+          it shrink below its content height so the inner overflow:auto kicks
+          in instead of pushing the DeleteDropZone off-screen. */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
+          {renderList.map((item) => {
+            if (item.kind === 'section') {
+              return (
+                <CanvasSection
+                  key={`section-${item.section.id}-${item.fields[0]?.id ?? 'empty'}`}
+                  section={item.section}
+                  fields={item.fields}
+                  selectedFieldId={selectedFieldId}
+                />
+              );
+            }
+            const f = item.field;
+            if (f.type === 'subform') {
+              return (
+                <SubformContainer
+                  key={f.id}
+                  field={f}
+                  isSelected={f.id === selectedFieldId}
+                  childFields={getChildFields((f.config?.subformRefId as string) ?? '')}
+                />
+              );
+            }
+            return <CanvasField key={f.id} field={f} isSelected={f.id === selectedFieldId} />;
+          })}
+        </SortableContext>
+        <EmptyCanvasDropZone empty={isEmpty} />
+      </div>
+      {/* Delete zone is always at the bottom edge of the canvas, regardless
+          of how many fields are above. */}
       <DeleteDropZone />
     </div>
   );
