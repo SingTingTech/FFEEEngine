@@ -37,5 +37,6 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Playwright MCP debug cache (local only, never commit)
+# Playwright artifacts (local only, never commit)
 .playwright-mcp/
+.playwright-screenshots/
