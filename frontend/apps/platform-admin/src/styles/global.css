@@ -1,0 +1,15 @@
+/* Lock viewport: no global scroll. Page-level layouts (e.g. DesignerPage)
+   set their own internal scroll regions via overflow:auto. */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}

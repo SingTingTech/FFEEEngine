@@ -19,8 +19,16 @@ export function DeleteDropZone() {
     <div
       ref={setNodeRef}
       style={{
+        // Sticky so the delete zone stays at the bottom of the canvas viewport
+        // even when the field list scrolls. Background covers content scrolling
+        // underneath.
+        position: 'sticky',
+        bottom: 0,
         marginTop: 16,
-        padding: '20px 12px',
+        marginLeft: -16,
+        marginRight: -16,
+        marginBottom: -16,
+        padding: '20px 16px',
         border: `2px dashed ${showActive ? '#ff4d4f' : '#d9d9d9'}`,
         background: showActive ? '#fff1f0' : '#fafafa',
         borderRadius: 4,
@@ -29,6 +37,7 @@ export function DeleteDropZone() {
         fontSize: 13,
         transition: 'all 0.15s',
         cursor: showActive ? 'copy' : 'default',
+        zIndex: 1,
       }}
     >
       <div style={{ fontSize: 24, lineHeight: 1, marginBottom: 4 }}>🗑️</div>
