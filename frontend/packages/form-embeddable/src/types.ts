@@ -7,24 +7,26 @@ export type {
 } from '@safe-validator/shared-types';
 
 // Component-specific types
+// Note: ID fields are `string` because the backend serializes Long as String
+// to avoid JavaScript Number precision loss. See common/jackson/JacksonConfig.
 export interface FormFillerProps {
   // Data source
-  formId: number;
+  formId: string | number;
   apiBase: string;
   token?: string;
 
   // Mode
   readOnly?: boolean;
-  recordId?: number;
+  recordId?: string | number;
 
   // Subform events
   onCreate?: () => void;
-  onEdit?: (recordId: number) => void;
-  onView?: (recordId: number) => void;
-  onDelete?: (recordId: number) => void;
+  onEdit?: (recordId: string | number) => void;
+  onView?: (recordId: string | number) => void;
+  onDelete?: (recordId: string | number) => void;
 
   // Submit callbacks
-  onSubmitSuccess?: (recordId: number) => void;
+  onSubmitSuccess?: (recordId: string | number) => void;
   onSubmitError?: (error: Error) => void;
   onCancel?: () => void;
 
@@ -35,7 +37,7 @@ export interface FormFillerProps {
 
 export interface FormListProps {
   // Data source
-  formId: number;
+  formId: string | number;
   apiBase: string;
   token?: string;
 
@@ -54,9 +56,9 @@ export interface FormListProps {
 
   // CRUD callbacks
   onCreate?: () => void;
-  onView?: (recordId: number) => void;
-  onEdit?: (recordId: number) => void;
-  onDelete?: (recordId: number) => Promise<void> | void;
+  onView?: (recordId: string | number) => void;
+  onEdit?: (recordId: string | number) => void;
+  onDelete?: (recordId: string | number) => Promise<void> | void;
 
   // Customization
   title?: string;
@@ -64,24 +66,21 @@ export interface FormListProps {
   themeToken?: Record<string, string>;
 }
 
-// reference field types
 export interface ReferenceOption {
-  id: number | string;
+  id: string | number;
   display: string;
 }
 
-// 1:N subform inline edit item
 export interface ChildItem {
-  id?: number;
+  id?: string | number;
   data: Record<string, any>;
 }
 
-// Form data wrapped for the API
 export interface FormSubmitPayload {
-  formId: number;
+  formId: string | number;
   data: Record<string, any>;
   children?: Array<{
-    formId: number;
+    formId: string | number;
     data: Record<string, any>;
     children?: any[];
   }>;

@@ -124,7 +124,7 @@ export function PropertyPanel() {
 function ReferenceConfig({
   field, onChange,
 }: { field: FormFieldDefVO; onChange: (patch: Partial<FormFieldDefVO>) => void }) {
-  const config = (field.config ?? {}) as { referenceFormId?: number; referenceDisplayField?: string; referenceStorageAs?: string };
+  const config = (field.config ?? {}) as { referenceFormId?: string; referenceDisplayField?: string; referenceStorageAs?: string };
   const { data: allForms } = useQuery({
     queryKey: ['forms-list'],
     queryFn: () => designerApi.listForms(),

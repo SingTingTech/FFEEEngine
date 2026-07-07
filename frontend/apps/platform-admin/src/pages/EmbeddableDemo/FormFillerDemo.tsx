@@ -14,7 +14,7 @@ export default function FormFillerDemo() {
     <App>
       <FormFiller
         formId={42}
-        recordId={id ? Number(id) : undefined}
+        recordId={id || undefined}
         apiBase={apiBase}
         token={token}
         readOnly={isView}

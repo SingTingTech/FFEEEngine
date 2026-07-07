@@ -4,8 +4,8 @@ import type { Endpoints } from '../api/endpoints';
 
 export function useFormData(
   endpoints: Endpoints,
-  formId: number,
-  recordId: number | undefined,
+  formId: string | number,
+  recordId: string | number | undefined,
 ): UseQueryResult<FormRecord> {
   return useQuery({
     queryKey: ['form-record', formId, recordId],
@@ -15,7 +15,7 @@ export function useFormData(
 }
 
 export interface SubmitVariables {
-  formId: number;
+  formId: string | number;
   payload: Omit<FormSubmitPayload, 'formId'>;
 }
 

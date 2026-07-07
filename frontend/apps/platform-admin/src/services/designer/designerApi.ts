@@ -12,42 +12,42 @@ export const designerApi = {
   listForms: () =>
     request(http.get<Result<FormVO[]>>('/forms')),
   createForm: (req: CreateFormRequest) =>
-    request(http.post<Result<number>>('/forms', req)),
-  getForm: (formId: number) =>
+    request(http.post<Result<string>>('/forms', req)),
+  getForm: (formId: string) =>
     request(http.get<Result<SchemaDetailVO>>(`/forms/${formId}/schema`)),
-  getVersions: (formId: number) =>
+  getVersions: (formId: string) =>
     request(http.get<Result<SchemaVersionVO[]>>(`/forms/${formId}/versions`)),
-  publishNewVersion: (formId: number, req: UpdateSchemaRequest) =>
-    request(http.put<Result<number>>(`/forms/${formId}/schema`, req)),
-  deleteForm: (formId: number) =>
+  publishNewVersion: (formId: string, req: UpdateSchemaRequest) =>
+    request(http.put<Result<string>>(`/forms/${formId}/schema`, req)),
+  deleteForm: (formId: string) =>
     request(http.delete<Result<void>>(`/forms/${formId}`)),
 
   // Fields
-  listFields: (formId: number) =>
+  listFields: (formId: string) =>
     request(http.get<Result<FormFieldDefVO[]>>(`/forms/${formId}/fields`)),
-  addField: (formId: number, req: CreateFieldRequest) =>
-    request(http.post<Result<number>>(`/forms/${formId}/fields`, req)),
-  updateField: (formId: number, fieldId: number, req: Partial<CreateFieldRequest>) =>
+  addField: (formId: string, req: CreateFieldRequest) =>
+    request(http.post<Result<string>>(`/forms/${formId}/fields`, req)),
+  updateField: (formId: string, fieldId: string, req: Partial<CreateFieldRequest>) =>
     request(http.put<Result<void>>(`/forms/${formId}/fields/${fieldId}`, req)),
-  deleteField: (formId: number, fieldId: number) =>
+  deleteField: (formId: string, fieldId: string) =>
     request(http.delete<Result<void>>(`/forms/${formId}/fields/${fieldId}`)),
 
   // Relationships
-  listRelationships: (formId: number) =>
+  listRelationships: (formId: string) =>
     request(http.get<Result<RelationshipVO[]>>(`/forms/${formId}/relationships`)),
 
   // Sections (NEW from V5)
-  listSections: (formId: number) =>
+  listSections: (formId: string) =>
     request(http.get<Result<SectionVO[]>>(`/forms/${formId}/sections`)),
-  createSection: (formId: number, req: CreateSectionRequest) =>
-    request(http.post<Result<number>>(`/forms/${formId}/sections`, req)),
-  updateSection: (formId: number, sectionId: number, req: UpdateSectionRequest) =>
+  createSection: (formId: string, req: CreateSectionRequest) =>
+    request(http.post<Result<string>>(`/forms/${formId}/sections`, req)),
+  updateSection: (formId: string, sectionId: string, req: UpdateSectionRequest) =>
     request(http.put<Result<void>>(`/forms/${formId}/sections/${sectionId}`, req)),
-  deleteSection: (formId: number, sectionId: number) =>
+  deleteSection: (formId: string, sectionId: string) =>
     request(http.delete<Result<void>>(`/forms/${formId}/sections/${sectionId}`)),
 
   // Business keys
-  getBusinessKeys: (formId: number) =>
+  getBusinessKeys: (formId: string) =>
     request(http.get<Result<FormBusinessKey[]>>(`/forms/${formId}/business-key`)),
 
   // DB introspection
@@ -57,8 +57,8 @@ export const designerApi = {
     request(http.get<Result<ColumnInfo[]>>(`/admin/db/tables/${table}/columns`)),
 
   // Form records (for preview, not editing)
-  getFormRecord: (formId: number, recordId: number) =>
+  getFormRecord: (formId: string, recordId: string) =>
     request(http.get<Result<unknown>>(`/forms/${formId}/records/${recordId}`)),
-  listFormRecords: (formId: number, keyword?: string) =>
+  listFormRecords: (formId: string, keyword?: string) =>
     request(http.get<Result<unknown>>(`/forms/${formId}/records`, { params: { keyword } })),
 };

@@ -7,8 +7,8 @@ export default function FormListDemo() {
   const apiBase = import.meta.env.VITE_API_BASE ?? '/api';
   const token = localStorage.getItem('token') ?? '';
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(`确认删除订单 ${id}？`)) return;
+  const handleDelete = async (id: string | number) => {
+    if (!confirm(`确认删除记录 ${id}？`)) return;
     const res = await fetch(`${apiBase}/forms/42/records/${id}`, {
       method: 'DELETE',
       headers: { Authorization: token ? `Bearer ${token}` : '' },
@@ -24,7 +24,7 @@ export default function FormListDemo() {
         formId={42}
         apiBase={apiBase}
         token={token}
-        title="订单列表（嵌入组件 Demo）"
+        title="数据列表（嵌入组件 Demo）"
         onCreate={() => navigate('/embdemo/new')}
         onView={(id) => navigate(`/embdemo/edit/${id}?mode=view`)}
         onEdit={(id) => navigate(`/embdemo/edit/${id}?mode=edit`)}

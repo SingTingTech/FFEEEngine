@@ -24,12 +24,12 @@ export interface LookupParams {
 
 export function createEndpoints(http: Http) {
   return {
-    getSchema: (formId: number) => http.get<SchemaDetailVO>(`/api/forms/${formId}/schema`),
+    getSchema: (formId: string | number) => http.get<SchemaDetailVO>(`/api/forms/${formId}/schema`),
 
-    getRecord: (formId: number, recordId: number) =>
+    getRecord: (formId: string | number, recordId: string | number) =>
       http.get<FormRecord>(`/api/forms/${formId}/records/${recordId}`),
 
-    listRecords: (formId: number, params: ListParams) => {
+    listRecords: (formId: string | number, params: ListParams) => {
       const search = new URLSearchParams();
       if (params.pageNum !== undefined) search.set('pageNum', String(params.pageNum));
       if (params.pageSize !== undefined) search.set('pageSize', String(params.pageSize));
@@ -38,21 +38,21 @@ export function createEndpoints(http: Http) {
       return http.get<PageResult<FormRecord>>(`/api/forms/${formId}/records${qs ? `?${qs}` : ''}`);
     },
 
-    submitForm: (formId: number, payload: any) =>
+    submitForm: (formId: string | number, payload: any) =>
       http.post<{ id: number; formId: number; formVersion: number; childResults: any[] }>(
         `/api/forms/${formId}/records`,
         payload,
       ),
 
-    deleteRecord: (formId: number, recordId: number) =>
+    deleteRecord: (formId: string | number, recordId: string | number) =>
       http.delete<void>(`/api/forms/${formId}/records/${recordId}`),
 
-    listChildren: (formId: number, recordId: number, childFormId: number) =>
+    listChildren: (formId: string | number, recordId: string | number, childFormId: string | number) =>
       http.get<PageResult<FormRecord>>(
         `/api/forms/${formId}/records/${recordId}/children/${childFormId}`,
       ),
 
-    lookupReference: (targetFormId: number, keyword: string, params: LookupParams) => {
+    lookupReference: (targetFormId: string | number, keyword: string, params: LookupParams) => {
       const search = new URLSearchParams();
       if (params.pageNum !== undefined) search.set('pageNum', String(params.pageNum));
       if (params.pageSize !== undefined) search.set('pageSize', String(params.pageSize));

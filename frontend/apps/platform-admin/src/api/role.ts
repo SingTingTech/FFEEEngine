@@ -2,12 +2,12 @@ import { http, request } from './http';
 import { PageResult } from '@safe-validator/shared-types';
 
 export interface RoleVO {
-  id: number;
+  id: string;
   code: string;
   name: string;
   description: string | null;
   status: number;
-  permissionIds: number[];
+  permissionIds: string[];
 }
 
 export interface RoleRequest {
@@ -15,15 +15,15 @@ export interface RoleRequest {
   name: string;
   description?: string;
   status?: number;
-  permissionIds?: number[];
+  permissionIds?: string[];
 }
 
 export const roleApi = {
   page: (params: { pageNum?: number; pageSize?: number; keyword?: string }) =>
     request<PageResult<RoleVO>>(http.get('/admin/roles', { params })),
   listAll: () => request<RoleVO[]>(http.get('/admin/roles/all')),
-  create: (data: RoleRequest) => request<number>(http.post('/admin/roles', data)),
-  update: (id: number, data: RoleRequest) =>
+  create: (data: RoleRequest) => request<string>(http.post('/admin/roles', data)),
+  update: (id: string, data: RoleRequest) =>
     request<void>(http.put(`/admin/roles/${id}`, data)),
-  delete: (id: number) => request<void>(http.delete(`/admin/roles/${id}`)),
+  delete: (id: string) => request<void>(http.delete(`/admin/roles/${id}`)),
 };

@@ -37,7 +37,7 @@ export default function RolePage() {
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: RoleRequest }) => roleApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: RoleRequest }) => roleApi.update(id, data),
     onSuccess: () => {
       message.success('更新成功');
       qc.invalidateQueries({ queryKey: ['roles'] });

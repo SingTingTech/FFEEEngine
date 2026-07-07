@@ -7,16 +7,16 @@ import { ReferenceField } from './ReferenceField';
 
 export interface NestedChildrenProps {
   endpoints: Endpoints;
-  childFormId: number;
+  childFormId: string | number;
   childFields: FormFieldDefVO[];   // fields of the child form
   childLinkField: string;         // the linking field (auto-handled, hidden from UI)
-  parentRecordId?: number;        // undefined = new parent, no children yet
+  parentRecordId?: string | number;        // undefined = new parent, no children yet
   /** When provided, [+ 添加] button triggers onCreate() (consumer routing).
    *  When absent, button appends an inline empty item. */
   onCreate?: () => void;
-  onEdit?: (recordId: number) => void;
-  onView?: (recordId: number) => void;
-  onDelete?: (recordId: number) => void;
+  onEdit?: (recordId: string | number) => void;
+  onView?: (recordId: string | number) => void;
+  onDelete?: (recordId: string | number) => void;
 }
 
 export interface NestedChildrenHandle {

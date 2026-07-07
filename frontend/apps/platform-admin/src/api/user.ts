@@ -2,7 +2,7 @@ import { http, request } from './http';
 import { PageQuery, PageResult } from '@safe-validator/shared-types';
 
 export interface UserVO {
-  id: number;
+  id: string;
   username: string;
   realName: string | null;
   email: string | null;
@@ -20,7 +20,7 @@ export interface UserCreateRequest {
   email?: string;
   phone?: string;
   status?: number;
-  roleIds?: number[];
+  roleIds?: string[];
 }
 
 export type UserUpdateRequest = Partial<UserCreateRequest>;
@@ -36,10 +36,10 @@ export const userApi = {
         },
       }),
     ),
-  get: (id: number) => request<UserVO>(http.get(`/admin/users/${id}`)),
+  get: (id: string) => request<UserVO>(http.get(`/admin/users/${id}`)),
   create: (data: UserCreateRequest) =>
-    request<number>(http.post('/admin/users', data)),
-  update: (id: number, data: UserUpdateRequest) =>
+    request<string>(http.post('/admin/users', data)),
+  update: (id: string, data: UserUpdateRequest) =>
     request<void>(http.put(`/admin/users/${id}`, data)),
-  delete: (id: number) => request<void>(http.delete(`/admin/users/${id}`)),
+  delete: (id: string) => request<void>(http.delete(`/admin/users/${id}`)),
 };

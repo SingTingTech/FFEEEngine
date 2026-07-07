@@ -1,7 +1,10 @@
 // Mirror of backend DTOs
+// Note: all ID fields are `string` because the backend serializes Long as String
+// to avoid JavaScript Number precision loss (max safe integer = 2^53 - 1 ≈ 9.007e15).
+// MyBatis-Plus ASSIGN_ID produces IDs around 2e18 which would lose the last 3-4 digits.
 export interface FormVO {
-  id: number;
-  formId: number;
+  id: string;
+  formId: string;
   version: number;
   name: string;
   description: string | null;
@@ -13,8 +16,8 @@ export interface FormVO {
 }
 
 export interface SchemaVersionVO {
-  schemaId: number;
-  formId: number;
+  schemaId: string;
+  formId: string;
   version: number;
   isCurrent: boolean;
   name: string;
@@ -22,8 +25,8 @@ export interface SchemaVersionVO {
 }
 
 export interface FormFieldDefVO {
-  id: number;
-  schemaId: number;
+  id: string;
+  schemaId: string;
   code: string;
   name: string;
   type: string;
@@ -33,17 +36,17 @@ export interface FormFieldDefVO {
   config: Record<string, any> | null;
   validation: Record<string, any> | null;
   targetColumn: string | null;
-  sectionId: number | null;        // NEW from V5
+  sectionId: string | null;
   isLinkField: boolean;
   createTime: string;
   updateTime: string;
 }
 
 export interface RelationshipVO {
-  id: number;
-  schemaId: number;
-  parentFormId: number;
-  childFormId: number;
+  id: string;
+  schemaId: string;
+  parentFormId: string;
+  childFormId: string;
   relationType: 'ONE_TO_ONE' | 'ONE_TO_MANY';
   parentLinkField: string | null;
   childLinkField: string;
@@ -52,8 +55,8 @@ export interface RelationshipVO {
 }
 
 export interface SectionVO {
-  id: number;
-  schemaId: number;
+  id: string;
+  schemaId: string;
   name: string;
   description: string | null;
   sortOrder: number;
@@ -62,9 +65,9 @@ export interface SectionVO {
 }
 
 export interface SchemaDetailVO {
-  formId: number;
+  formId: string;
   version: number;
-  schemaId: number;
+  schemaId: string;
   name: string;
   description: string | null;
   targetTable: string | null;
@@ -79,7 +82,7 @@ export interface CreateFormRequest {
   name: string;
   code?: string;
   description?: string;
-  targetTable?: string | null;       // null = use form_data
+  targetTable?: string | null;
 }
 
 export interface CreateFieldRequest {
@@ -92,12 +95,12 @@ export interface CreateFieldRequest {
   config?: Record<string, any>;
   validation?: Record<string, any>;
   targetColumn?: string;
-  sectionId?: number;                 // NEW from V5
+  sectionId?: string;
 }
 
 export interface CreateRelationshipRequest {
-  parentFormId: number;
-  childFormId: number;
+  parentFormId: string;
+  childFormId: string;
   relationType: 'ONE_TO_ONE' | 'ONE_TO_MANY';
   parentLinkField?: string;
   childLinkField: string;
@@ -105,6 +108,9 @@ export interface CreateRelationshipRequest {
 }
 
 export interface CreateSectionRequest {
+  // Client-side id (temp id like "tmp-0" or server id when editing).
+  // Backend uses this to remap field.sectionId.
+  id?: string;
   name: string;
   description?: string;
   sortOrder?: number;
@@ -125,9 +131,9 @@ export interface UpdateSchemaRequest {
 }
 
 export interface FormBusinessKey {
-  id: number;
-  formId: number;
-  fieldId: number;
+  id: string;
+  formId: string;
+  fieldId: string;
   keyOrder: number;
 }
 
@@ -139,15 +145,14 @@ export interface ColumnInfo {
   size: number | null;
 }
 
-// Subform config (stored in form_field_def.config JSONB for type='subform' fields)
 export interface SubformConfig {
-  subformRefId: number;
+  subformRefId: string;
   isList: boolean;
   linkFields: LinkFieldPair[];
   onDelete: 'CASCADE' | 'SET_NULL' | 'RESTRICT';
 }
 
 export interface LinkFieldPair {
-  parent: string;   // parent field code
-  child: string;    // child field code
+  parent: string;
+  child: string;
 }

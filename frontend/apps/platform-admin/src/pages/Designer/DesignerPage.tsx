@@ -27,8 +27,8 @@ export default function DesignerPage() {
   }, [formId, reset, navigate]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['form', Number(formId)],
-    queryFn: () => designerApi.getForm(Number(formId)),
+    queryKey: ['form', formId],
+    queryFn: () => designerApi.getForm(formId!),
     enabled: !!formId,
   });
 

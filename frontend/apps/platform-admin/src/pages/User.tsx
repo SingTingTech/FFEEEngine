@@ -10,7 +10,7 @@ export default function UserPage() {
   const qc = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [editing, setEditing] = useState<UserVO | null>(null);
-  const [form] = Form.useForm<UserCreateRequest | (UserUpdateRequest & { id?: number })>();
+  const [form] = Form.useForm<UserCreateRequest | (UserUpdateRequest & { id?: string })>();
 
   const { data, isLoading } = useQuery({
     queryKey: ['users', 'list', keyword],
@@ -34,7 +34,7 @@ export default function UserPage() {
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UserUpdateRequest }) => userApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UserUpdateRequest }) => userApi.update(id, data),
     onSuccess: () => {
       message.success('更新成功');
       qc.invalidateQueries({ queryKey: ['users'] });

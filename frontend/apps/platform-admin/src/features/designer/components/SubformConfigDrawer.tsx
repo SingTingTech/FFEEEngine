@@ -11,7 +11,7 @@ interface Props {
   field: FormFieldDefVO;
   onClose: () => void;
   onSave: (config: {
-    subformRefId: number;
+    subformRefId: string;
     isList: boolean;
     linkFields: LinkFieldPair[];
     onDelete: 'CASCADE' | 'SET_NULL' | 'RESTRICT';
@@ -23,13 +23,13 @@ export function SubformConfigDrawer({ open, field, onClose, onSave }: Props) {
   const formId = useDesignerStore((s) => s.formId);
 
   const initial = (field.config ?? {}) as {
-    subformRefId?: number;
+    subformRefId?: string;
     isList?: boolean;
     linkFields?: LinkFieldPair[];
     onDelete?: 'CASCADE' | 'SET_NULL' | 'RESTRICT';
   };
 
-  const [subformRefId, setSubformRefId] = useState<number | undefined>(initial.subformRefId);
+  const [subformRefId, setSubformRefId] = useState<string | undefined>(initial.subformRefId);
   const [isList, setIsList] = useState<boolean>(initial.isList ?? true);
   const [linkFields, setLinkFields] = useState<LinkFieldPair[]>(initial.linkFields ?? []);
   const [onDelete, setOnDelete] = useState<'CASCADE' | 'SET_NULL' | 'RESTRICT'>(initial.onDelete ?? 'CASCADE');

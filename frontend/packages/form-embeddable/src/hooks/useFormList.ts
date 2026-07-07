@@ -4,7 +4,7 @@ import type { Endpoints, ListParams } from '../api/endpoints';
 
 export function useFormList(
   endpoints: Endpoints,
-  formId: number,
+  formId: string | number,
   params: ListParams = { pageNum: 1, pageSize: 20 },
 ): UseQueryResult<PageResult<FormRecord>> {
   return useQuery({

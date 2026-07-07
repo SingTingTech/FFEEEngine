@@ -4,7 +4,7 @@ import type { Endpoints } from '../api/endpoints';
 
 export function useFormSchema(
   endpoints: Endpoints,
-  formId: number,
+  formId: string | number,
   options?: { enabled?: boolean },
 ): UseQueryResult<SchemaDetailVO> {
   return useQuery({

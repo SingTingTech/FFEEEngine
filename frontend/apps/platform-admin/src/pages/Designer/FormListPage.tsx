@@ -19,7 +19,7 @@ export default function FormListPage() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: (id: number) => designerApi.deleteForm(id),
+    mutationFn: (id: string) => designerApi.deleteForm(id),
     onSuccess: () => {
       message.success('已删除');
       qc.invalidateQueries({ queryKey: ['forms'] });
@@ -134,7 +134,7 @@ function CreateFormModal({ open, onClose }: { open: boolean; onClose: () => void
     >
       <Form form={form} layout="vertical">
         <Form.Item name="name" label="名称" rules={[{ required: true, max: 128 }]}>
-          <Input placeholder="订单" />
+          <Input placeholder="请输入表单名称" />
         </Form.Item>
         <Form.Item name="description" label="描述">
           <Input.TextArea rows={2} />
