@@ -18,11 +18,19 @@ export function LinkFieldsEditor({
     businessKeys.map((bk) => parentFields.find((f) => f.id === bk.fieldId)?.code).filter(Boolean)
   );
 
+  // Format a field for the parent/child dropdowns. Show the display name
+  // when it differs from the code, then the code and type — code is
+  // what gets stored in linkFields, name is just for human reading.
+  const formatField = (field: FormFieldDefVO, badge?: string) => {
+    const head = field.name && field.name !== field.code ? `${field.name} (${field.code})` : field.code;
+    return `${head} (${field.type})${badge ?? ''}`;
+  };
+
   const parentOptions = (field: FormFieldDefVO) => ({
     value: field.code,
     label: businessKeyCodes.has(field.code)
-      ? `${field.code} (${field.type}) ⭐ 业务主键`
-      : `${field.code} (${field.type})`,
+      ? `${formatField(field)} ⭐ 业务主键`
+      : formatField(field),
   });
 
   // Show every child field. The 🔗 badge marks fields already flagged as
@@ -31,7 +39,7 @@ export function LinkFieldsEditor({
   // filtering on it would lock the user out as soon as the first pair
   // is added.
   const childOptions = childFields
-    .map((f) => ({ value: f.code, label: `${f.code} (${f.type})${f.isLinkField ? ' 🔗' : ''}` }));
+    .map((f) => ({ value: f.code, label: formatField(f, f.isLinkField ? ' 🔗' : undefined) }));
 
   const updatePair = (i: number, patch: Partial<LinkFieldPair>) => {
     const next = [...value];
