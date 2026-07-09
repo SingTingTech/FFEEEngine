@@ -1,6 +1,7 @@
 import { Drawer, Form, Select, Switch, App, Button, Space } from 'antd';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import { useDesignerStore } from '@/services/designer/designerStore';
 import { designerApi } from '@/services/designer/designerApi';
 import { LinkFieldsEditor } from './LinkFieldsEditor';
@@ -20,7 +21,15 @@ interface Props {
 
 export function SubformConfigDrawer({ open, field, onClose, onSave }: Props) {
   const { message } = App.useApp();
-  const formId = useDesignerStore((s) => s.formId);
+  // Pull formId from the URL params, not the zustand store. The URL
+  // is the source of truth for which form is being edited, and unlike
+  // store.formId it's a string from the moment this component mounts
+  // (zustand loadSchema runs in a useEffect and can be async relative
+  // to the drawer opening). Without this the picker silently fell
+  // through the self-exclusion filter when formId was null/undefined
+  // and let the user pick the currently-edited form.
+  const { formId: urlFormId } = useParams<{ formId: string }>();
+  const formId = useDesignerStore((s) => s.formId) ?? urlFormId;
 
   const initial = (field.config ?? {}) as {
     subformRefId?: string;
@@ -86,7 +95,7 @@ export function SubformConfigDrawer({ open, field, onClose, onSave }: Props) {
             // Deeper cycles (A → B → A) are not caught here and should
             // be rejected server-side at publish time.
             options={(allForms ?? [])
-              .filter((f) => f.formId !== formId)
+              .filter((f) => f.formId !== formId && f.formId !== undefined)
               .map((f) => ({
                 value: f.formId, label: `${f.name} (form ${f.formId})`,
               }))}
