@@ -21,22 +21,6 @@ interface Props {
 export function SubformConfigDrawer({ open, field, onClose, onSave }: Props) {
   const { message } = App.useApp();
   const formId = useDesignerStore((s) => s.formId);
-  // Forms already referenced as subforms by *other* fields in this
-  // form are excluded too — otherwise form A could pick form B as a
-  // subform while field B in form B already picks form A as its own
-  // subform, producing a rendering loop. Direct cycles (pick yourself)
-  // is also filtered — a form can't be a subform of itself.
-  const { data: parentSchema } = useQuery({
-    queryKey: ['form', formId],
-    queryFn: () => designerApi.getForm(formId!),
-    enabled: !!formId,
-  });
-  const alreadyLinkedFormIds = new Set(
-    (parentSchema?.fields ?? [])
-      .filter((f) => f.type === 'subform' && f.id !== field.id)
-      .map((f) => (f.config as { subformRefId?: string } | null)?.subformRefId)
-      .filter((id): id is string => typeof id === 'string' && id.length > 0),
-  );
 
   const initial = (field.config ?? {}) as {
     subformRefId?: string;
@@ -73,6 +57,12 @@ export function SubformConfigDrawer({ open, field, onClose, onSave }: Props) {
     queryFn: () => designerApi.getBusinessKeys(formId!),
     enabled: !!formId,
   });
+  // Also need parent fields — fetch current form's fields
+  const { data: parentSchema } = useQuery({
+    queryKey: ['form', formId],
+    queryFn: () => designerApi.getForm(formId!),
+    enabled: !!formId,
+  });
 
   const handleSave = () => {
     if (!subformRefId) {
@@ -90,13 +80,13 @@ export function SubformConfigDrawer({ open, field, onClose, onSave }: Props) {
             showSearch
             value={subformRefId}
             placeholder="选择其他表单作为子表单"
-            // Filter out the form itself and any form that is already
-            // referenced as a subform by another field in this same
-            // form — picking those creates a render cycle. Currently
-            // editing a subform field shows its own existing selection
-            // even after the filter, which is fine.
+            // Exclude self — picking yourself produces a render loop.
+            // Multiple fields in the same form pointing at the same
+            // subform is allowed (independent foreign-key relations).
+            // Deeper cycles (A → B → A) are not caught here and should
+            // be rejected server-side at publish time.
             options={(allForms ?? [])
-              .filter((f) => f.formId !== formId && !alreadyLinkedFormIds.has(f.formId))
+              .filter((f) => f.formId !== formId)
               .map((f) => ({
                 value: f.formId, label: `${f.name} (form ${f.formId})`,
               }))}
