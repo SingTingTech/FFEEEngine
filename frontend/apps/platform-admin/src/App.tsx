@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout, Menu, Dropdown, Avatar, Typography, Button, App as AntdApp } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth';
 import { authApi } from '@/api/auth';
+import { isTokenExpired } from '@/utils/jwt';
 import { RequireAuth } from '@/routes/RequireAuth';
 import LoginPage from '@/pages/Login';
 import UserPage from '@/pages/User';
@@ -90,6 +92,24 @@ function MainLayout() {
 }
 
 export default function App() {
+  // Proactively catch expired tokens while the user idles in the
+  // designer — every minute check whether the token's `exp` claim has
+  // passed, and kick to /login if so. The request interceptor also
+  // checks before each call, but most users spend long stretches
+  // without firing requests.
+  useEffect(() => {
+    const tick = () => {
+      const { token, logout } = useAuthStore.getState();
+      if (token && isTokenExpired(token) && window.location.pathname !== '/login') {
+        logout();
+        window.location.href = '/login';
+      }
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
