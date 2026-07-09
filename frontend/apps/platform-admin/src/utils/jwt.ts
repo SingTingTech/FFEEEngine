@@ -41,6 +41,12 @@ export function decodeJwt(token: string | null | undefined): JwtPayload | null {
  * True if the token's `exp` claim is at/before now (+ optional skew).
  * If the token doesn't have an `exp` (or can't be decoded), returns
  * false — we can't prove it's expired, so assume it's not.
+ *
+ * Called from the axios request interceptor before each call. There's
+ * no proactive timer: the token string itself doesn't change once
+ * issued, and a user who never makes requests can't act on stale
+ * credentials anyway — the server will reject the next request the
+ * moment they do.
  */
 export function isTokenExpired(
   token: string | null | undefined,
