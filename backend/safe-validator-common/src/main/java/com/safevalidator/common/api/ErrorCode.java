@@ -25,6 +25,9 @@ public enum ErrorCode {
     TOKEN_EXPIRED(52002, "令牌已过期"),
     TOKEN_BLACKLISTED(52003, "令牌已撤销"),
 
+    THIRD_PARTY_APP_INVALID(52101, "第三方应用凭证无效"),
+    THIRD_PARTY_APP_DISABLED(52102, "第三方应用已停用"),
+
     FORM_NOT_FOUND(53001, "表单不存在"),
     FORM_FIELD_NOT_FOUND(53002, "表单字段不存在"),
     FORM_DATA_NOT_FOUND(53003, "表单数据不存在"),
